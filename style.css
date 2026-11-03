@@ -1,0 +1,1076 @@
+:root {
+  --saffron: #FF671F;
+  --saffron-hover: #E65100;
+  --saffron-light: #FFF4EC;
+  --white: #FFFFFF;
+  --green: #046A38;
+  --green-hover: #03522B;
+  --green-light: #F0FDF4;
+  --navy: #0A1E5C;
+  --primary: var(--saffron);
+  --primary-hover: var(--saffron-hover);
+  --accent: var(--green);
+  --bg: #F8FAFC;
+  --card-bg: #FFFFFF;
+  --text-main: #0F172A;
+  --text-muted: #64748B;
+  --border: #FFD8B3;
+  --success: var(--green);
+  --radius: 14px;
+  --shadow: 0 4px 18px rgba(255, 103, 31, 0.12);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  background-color: var(--bg);
+  color: var(--text-main);
+  line-height: 1.5;
+  user-select: none;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Indian Tricolor App Header */
+.app-header {
+  background: linear-gradient(135deg, #FF671F 0%, #FF8533 55%, #E65100 100%);
+  color: white;
+  padding: 14px 18px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 3px 12px rgba(255, 103, 31, 0.25);
+  border-bottom: 3.5px solid #046A38;
+}
+
+.app-title {
+  font-size: 1.25rem;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  letter-spacing: 0.5px;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.offline-badge {
+  background: rgba(255, 255, 255, 0.25);
+  font-size: 0.72rem;
+  padding: 5px 10px;
+  border-radius: 20px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  backdrop-filter: blur(4px);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+}
+
+/* Voice Command Button in Header */
+.voice-header-btn {
+  background: #FFFFFF;
+  color: var(--green);
+  border: none;
+  border-radius: 20px;
+  padding: 6px 12px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  transition: all 0.2s ease;
+}
+
+.voice-header-btn:active {
+  transform: scale(0.95);
+  background: #F0FDF4;
+}
+
+.voice-header-btn .mic-icon {
+  font-size: 1rem;
+}
+
+/* Container */
+.container {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 16px;
+  padding-bottom: 90px;
+}
+
+/* Install Banner */
+.install-banner {
+  background: white;
+  border: 1.5px solid #FFD8B3;
+  border-radius: var(--radius);
+  padding: 12px 16px;
+  margin-bottom: 18px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  box-shadow: 0 4px 14px rgba(255, 103, 31, 0.08);
+}
+
+.install-icon {
+  width: 50px;
+  height: 50px;
+  border-radius: 12px;
+  flex-shrink: 0;
+  box-shadow: 0 3px 8px rgba(0,0,0,0.12);
+  border: 1px solid #FFE0CC;
+}
+
+.install-info {
+  flex: 1;
+}
+
+.install-title {
+  font-weight: 800;
+  font-size: 0.98rem;
+  color: var(--navy);
+  margin-bottom: 2px;
+}
+
+.install-desc {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.btn-install {
+  background: linear-gradient(135deg, #046A38 0%, #0d8a2e 100%);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  padding: 9px 16px;
+  font-weight: 700;
+  font-size: 0.88rem;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s;
+  box-shadow: 0 2px 8px rgba(4, 106, 56, 0.3);
+}
+
+.btn-install:active {
+  transform: scale(0.97);
+  background: var(--green-hover);
+}
+
+/* Tab Navigation */
+.tab-nav {
+  display: flex;
+  background: white;
+  border-radius: 14px;
+  padding: 6px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+  border: 1px solid #FFD8B3;
+  margin-bottom: 20px;
+  overflow-x: auto;
+  gap: 6px;
+}
+
+.tab-btn {
+  flex: 1;
+  min-width: 100px;
+  padding: 10px 14px;
+  border: none;
+  background: transparent;
+  color: #64748B;
+  font-weight: 700;
+  font-size: 0.9rem;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.tab-btn.active {
+  background: linear-gradient(135deg, #FF671F 0%, #FF8533 100%);
+  color: white;
+  box-shadow: 0 3px 10px rgba(255, 103, 31, 0.35);
+}
+
+/* Tool Cards */
+.tool-card {
+  display: none;
+  background: var(--card-bg);
+  border-radius: var(--radius);
+  padding: 24px;
+  box-shadow: 0 4px 18px rgba(0,0,0,0.05);
+  border: 1px solid #E2E8F0;
+  animation: fadeIn 0.25s ease-out;
+}
+
+.tool-card.active {
+  display: block;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.tool-header {
+  margin-bottom: 20px;
+}
+
+.tool-header h2 {
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: var(--navy);
+  margin-bottom: 6px;
+}
+
+.tool-header p {
+  color: var(--text-muted);
+  font-size: 0.92rem;
+}
+
+/* Dropzones */
+.dropzone {
+  border: 2px dashed #FF9933;
+  border-radius: 14px;
+  padding: 30px 20px;
+  text-align: center;
+  background: #FFFDF9;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-bottom: 18px;
+}
+
+.dropzone:hover, .dropzone:active {
+  background: #F0FDF4;
+  border-color: #046A38;
+}
+
+.dropzone-icon {
+  font-size: 2.5rem;
+  margin-bottom: 8px;
+}
+
+.dropzone-text {
+  font-weight: 700;
+  font-size: 1rem;
+  color: var(--navy);
+}
+
+.dropzone-hint {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+
+/* Form Controls */
+.form-group {
+  margin-bottom: 16px;
+}
+
+.form-group label {
+  display: block;
+  font-weight: 700;
+  font-size: 0.86rem;
+  color: #334155;
+  margin-bottom: 6px;
+}
+
+.input-control {
+  width: 100%;
+  padding: 11px 14px;
+  border: 1.5px solid #CBD5E1;
+  border-radius: 9px;
+  font-size: 0.94rem;
+  color: var(--text-main);
+  background: white;
+  transition: border-color 0.2s;
+}
+
+.input-control:focus {
+  outline: none;
+  border-color: var(--saffron);
+  box-shadow: 0 0 0 3px rgba(255, 103, 31, 0.15);
+}
+
+.grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+/* Checkbox Row */
+.checkbox-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin: 16px 0;
+  font-size: 0.88rem;
+  color: #334155;
+  cursor: pointer;
+}
+
+.checkbox-row input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--green);
+  margin-top: 2px;
+  flex-shrink: 0;
+}
+
+/* Buttons */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 13px 20px;
+  font-size: 1rem;
+  font-weight: 800;
+  border-radius: 11px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-top: 10px;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #046A38 0%, #138808 100%);
+  color: white;
+  box-shadow: 0 3px 12px rgba(4, 106, 56, 0.3);
+}
+
+.btn-primary:active {
+  transform: scale(0.98);
+  background: var(--green-hover);
+}
+
+.btn-secondary {
+  background: #FFF5EB;
+  color: #D84315;
+  border: 1.5px solid #FFD8B3;
+  padding: 9px 16px;
+  font-size: 0.88rem;
+  border-radius: 9px;
+  font-weight: 700;
+  width: auto;
+}
+
+.btn-secondary:active {
+  background: #FFE2CC;
+}
+
+/* Signature Canvas */
+.sig-canvas-container {
+  border: 2px solid #E2E8F0;
+  border-radius: 12px;
+  background: #FFFFFF;
+  margin-bottom: 10px;
+  overflow: hidden;
+  box-shadow: inset 0 2px 6px rgba(0,0,0,0.04);
+}
+
+#signatureCanvas {
+  display: block;
+  width: 100%;
+  height: 150px;
+  touch-action: none;
+  background: #FFFFFF;
+}
+
+.sig-actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+/* Pill for selected file */
+.selected-file-pill {
+  background: #F0FDF4;
+  border: 1px solid #BBF7D0;
+  color: #166534;
+  font-size: 0.84rem;
+  font-weight: 700;
+  padding: 8px 14px;
+  border-radius: 8px;
+  margin-bottom: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* Status message */
+.status-box {
+  margin-top: 16px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  display: none;
+}
+
+.status-box.success {
+  display: block;
+  background: #F0FDF4;
+  color: #166534;
+  border: 1.5px solid #86EFAC;
+}
+
+.status-box.error {
+  display: block;
+  background: #FEF2F2;
+  color: #991B1B;
+  border: 1.5px solid #FECACA;
+}
+
+.status-box.info {
+  display: block;
+  background: #FFF7ED;
+  color: #9A3412;
+  border: 1.5px solid #FDBA74;
+}
+
+/* ------------------------------------------------------------- */
+/* VOICE COMMAND ASSISTANT MODAL (Indian Tricolor Aura)          */
+/* ------------------------------------------------------------- */
+.voice-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(15, 23, 42, 0.75);
+  backdrop-filter: blur(8px);
+  z-index: 1000;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  animation: fadeIn 0.2s ease-out;
+}
+
+.voice-modal-overlay.active {
+  display: flex;
+}
+
+.voice-modal-card {
+  background: #FFFFFF;
+  border-radius: 24px;
+  max-width: 480px;
+  width: 100%;
+  padding: 28px 24px;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.35);
+  border: 3px solid #FF9933;
+  text-align: center;
+  position: relative;
+}
+
+.voice-close-btn {
+  position: absolute;
+  top: 14px;
+  right: 16px;
+  background: #F1F5F9;
+  border: none;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  font-size: 16px;
+  font-weight: bold;
+  color: #64748B;
+  cursor: pointer;
+}
+
+.voice-modal-header {
+  margin-bottom: 20px;
+}
+
+.voice-modal-header h3 {
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: var(--navy);
+}
+
+.voice-modal-header p {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+/* Pulsing Microphone */
+.voice-mic-container {
+  position: relative;
+  width: 100px;
+  height: 100px;
+  margin: 0 auto 20px auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.voice-mic-circle {
+  width: 80px;
+  height: 80px;
+  background: linear-gradient(135deg, #FF671F 0%, #046A38 100%);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2.2rem;
+  color: white;
+  box-shadow: 0 6px 20px rgba(255, 103, 31, 0.4);
+  cursor: pointer;
+  z-index: 2;
+  transition: transform 0.2s;
+}
+
+.voice-mic-circle:active {
+  transform: scale(0.92);
+}
+
+.voice-pulse-ring {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  border: 3px solid #FF671F;
+  opacity: 0;
+  animation: pulseAura 1.8s infinite;
+  pointer-events: none;
+}
+
+.voice-pulse-ring-2 {
+  position: absolute;
+  top: -10px;
+  left: -10px;
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  border: 2px solid #046A38;
+  opacity: 0;
+  animation: pulseAura 1.8s infinite 0.6s;
+  pointer-events: none;
+}
+
+@keyframes pulseAura {
+  0% { transform: scale(0.8); opacity: 0.8; }
+  100% { transform: scale(1.3); opacity: 0; }
+}
+
+.voice-status-text {
+  font-size: 1rem;
+  font-weight: 800;
+  color: var(--saffron-hover);
+  margin-bottom: 12px;
+  min-height: 24px;
+}
+
+.voice-transcript-box {
+  background: #F8FAFC;
+  border: 1.5px solid #E2E8F0;
+  border-radius: 12px;
+  padding: 12px 14px;
+  font-size: 0.95rem;
+  color: var(--navy);
+  font-style: italic;
+  min-height: 48px;
+  margin-bottom: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Example Voice Commands Pills */
+.voice-tips-title {
+  font-size: 0.8rem;
+  font-weight: 800;
+  color: #64748B;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 8px;
+}
+
+.voice-tips-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  justify-content: center;
+}
+
+.voice-tip-pill {
+  background: #FFF7ED;
+  border: 1px solid #FFEDD5;
+  color: #C2410C;
+  font-size: 0.78rem;
+  font-weight: 700;
+  padding: 5px 10px;
+  border-radius: 16px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.voice-tip-pill:active {
+  background: #FFEDD5;
+  transform: scale(0.96);
+}
+
+/* Floating Voice Button on Mobile */
+.floating-voice-btn {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  width: 58px;
+  height: 58px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #FF671F 0%, #046A38 100%);
+  color: white;
+  border: 2.5px solid #FFFFFF;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.25);
+  font-size: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 90;
+  transition: all 0.2s ease;
+}
+
+.floating-voice-btn:active {
+  transform: scale(0.92);
+}
+
+/* ==========================================
+   DOCUMENT SCANNER STYLES (Mobile Camera HUD)
+   ========================================== */
+.scanner-container {
+  display: flex;
+  flex-direction: column;
+}
+
+.viewfinder-wrapper {
+  position: relative;
+  width: 100%;
+  height: 360px;
+  max-height: 55vh;
+  background: #0A0F1D;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: inset 0 0 20px rgba(0,0,0,0.6), 0 4px 16px rgba(0,0,0,0.12);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#scanVideo {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  background: #0A0F1D;
+}
+
+.viewfinder-overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+/* Indian Tricolor Framing Corners */
+.corner {
+  position: absolute;
+  width: 32px;
+  height: 32px;
+  border-width: 4px;
+  border-style: solid;
+}
+
+.corner-tl {
+  top: 24px;
+  left: 24px;
+  border-color: #FF671F transparent transparent #FF671F;
+  border-top-left-radius: 10px;
+}
+
+.corner-tr {
+  top: 24px;
+  right: 24px;
+  border-color: #FF671F #FF671F transparent transparent;
+  border-top-right-radius: 10px;
+}
+
+.corner-bl {
+  bottom: 24px;
+  left: 24px;
+  border-color: transparent transparent #046A38 #046A38;
+  border-bottom-left-radius: 10px;
+}
+
+.corner-br {
+  bottom: 24px;
+  right: 24px;
+  border-color: transparent #046A38 #046A38 transparent;
+  border-bottom-right-radius: 10px;
+}
+
+/* Dynamic scanning laser line */
+.scan-line {
+  position: absolute;
+  left: 24px;
+  right: 24px;
+  height: 2px;
+  background: linear-gradient(90deg, transparent 0%, #FF671F 20%, #FFFFFF 50%, #046A38 80%, transparent 100%);
+  box-shadow: 0 0 10px rgba(255,103,31,0.8);
+  top: 24px;
+  animation: scanSweep 2.8s ease-in-out infinite;
+}
+
+@keyframes scanSweep {
+  0% { top: 24px; opacity: 0.2; }
+  50% { top: calc(100% - 26px); opacity: 0.9; }
+  100% { top: 24px; opacity: 0.2; }
+}
+
+.viewfinder-hint {
+  position: absolute;
+  bottom: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(10, 30, 92, 0.75);
+  color: white;
+  padding: 5px 14px;
+  border-radius: 20px;
+  font-size: 0.76rem;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  backdrop-filter: blur(4px);
+  white-space: nowrap;
+  border: 1px solid rgba(255,255,255,0.25);
+}
+
+.scanner-controls-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  margin: 16px 0 12px 0;
+  padding: 0 10px;
+}
+
+.shutter-button {
+  width: 74px;
+  height: 74px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #FF671F 0%, #FFFFFF 50%, #046A38 100%);
+  padding: 4px;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 4px 18px rgba(255, 103, 31, 0.35);
+  transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.shutter-button:active {
+  transform: scale(0.9);
+  box-shadow: 0 2px 10px rgba(4, 106, 56, 0.3);
+}
+
+.shutter-inner {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: #FFFFFF;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s;
+}
+
+.shutter-button:active .shutter-inner {
+  background: #FFF4EC;
+}
+
+.shutter-icon {
+  font-size: 1.8rem;
+}
+
+.scanner-tool-btn {
+  background: #FFFFFF;
+  border: 1.5px solid #FFD8B3;
+  color: var(--navy);
+  border-radius: 12px;
+  padding: 10px 16px;
+  font-size: 0.86rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  transition: all 0.15s;
+}
+
+.scanner-tool-btn:active {
+  transform: scale(0.95);
+  background: #FFF4EC;
+}
+
+.voice-scan-prompt {
+  background: #F0FDF4;
+  border: 1.5px solid #86EFAC;
+  color: #046A38;
+  padding: 9px 14px;
+  border-radius: 12px;
+  font-size: 0.84rem;
+  text-align: center;
+  margin-bottom: 14px;
+  box-shadow: 0 2px 8px rgba(4,106,56,0.08);
+}
+
+.enhance-mode-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.enhance-label {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #475569;
+}
+
+.enhance-options {
+  display: flex;
+  gap: 6px;
+}
+
+.enhance-chip {
+  background: #F1F5F9;
+  border: 1.5px solid #CBD5E1;
+  color: #475569;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.enhance-chip.active {
+  background: #046A38;
+  color: #FFFFFF;
+  border-color: #046A38;
+  box-shadow: 0 2px 8px rgba(4,106,56,0.25);
+}
+
+.scanned-reel-container {
+  background: #FFFFFF;
+  border: 1.5px solid #E2E8F0;
+  border-radius: 14px;
+  padding: 14px;
+  margin-bottom: 16px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.04);
+}
+
+.reel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.reel-title {
+  font-weight: 800;
+  font-size: 0.92rem;
+  color: var(--navy);
+}
+
+.btn-clear-reel {
+  background: #FEE2E2;
+  color: #DC2626;
+  border: none;
+  padding: 4px 10px;
+  border-radius: 8px;
+  font-size: 0.76rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.scanned-thumbnails-list {
+  display: flex;
+  gap: 12px;
+  overflow-x: auto;
+  padding: 4px 2px 10px 2px;
+}
+
+.scan-thumb-card {
+  position: relative;
+  width: 90px;
+  height: 124px;
+  flex-shrink: 0;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 2px solid #CBD5E1;
+  background: #0F172A;
+  box-shadow: 0 3px 8px rgba(0,0,0,0.12);
+  transition: transform 0.15s;
+}
+
+.scan-thumb-card img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.scan-thumb-badge {
+  position: absolute;
+  top: 5px;
+  left: 5px;
+  background: rgba(10, 30, 92, 0.85);
+  color: white;
+  font-size: 0.68rem;
+  font-weight: 800;
+  padding: 2px 6px;
+  border-radius: 6px;
+}
+
+.scan-thumb-del {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  background: #DC2626;
+  color: white;
+  border: 1.5px solid white;
+  border-radius: 50%;
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  cursor: pointer;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+}
+
+.scan-export-bar {
+  background: #FFFDF9;
+  border: 1.5px solid #FFD8B3;
+  border-radius: 14px;
+  padding: 16px;
+  margin-bottom: 14px;
+  box-shadow: 0 4px 14px rgba(255,103,31,0.06);
+}
+
+/* ==========================================
+   INSTALLATION GUIDE MODAL STYLES
+   ========================================== */
+.install-modal-card {
+  background: white;
+  width: 92%;
+  max-width: 440px;
+  border-radius: 20px;
+  padding: 24px;
+  position: relative;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+  border: 2px solid #FFD8B3;
+  animation: modalPop 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.install-modal-header {
+  text-align: center;
+  margin-bottom: 16px;
+}
+
+.install-modal-header h3 {
+  font-size: 1.2rem;
+  font-weight: 800;
+  color: var(--navy);
+  margin-bottom: 4px;
+}
+
+.install-modal-header p {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+}
+
+.install-tabs {
+  display: flex;
+  background: #F1F5F9;
+  border-radius: 12px;
+  padding: 4px;
+  gap: 4px;
+  margin-bottom: 16px;
+}
+
+.install-tab-btn {
+  flex: 1;
+  padding: 8px 6px;
+  border: none;
+  background: transparent;
+  color: #475569;
+  font-weight: 700;
+  font-size: 0.78rem;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.15s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  white-space: nowrap;
+}
+
+.install-tab-btn.active {
+  background: #FFFFFF;
+  color: var(--navy);
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}
+
+.install-guide-panel {
+  display: none;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.install-guide-panel.active {
+  display: flex;
+}
+
+.install-step {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  background: #FFFDF9;
+  border: 1px solid #FFE0CC;
+  border-radius: 10px;
+  padding: 10px 12px;
+}
+
+.step-num {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #FF671F;
+  color: white;
+  font-weight: 800;
+  font-size: 0.76rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.step-text {
+  font-size: 0.86rem;
+  color: #1E293B;
+  line-height: 1.4;
+}
