@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#FF671F">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>Smart PDF Pro - Mobile & Tablet</title>
+  <link rel="icon" type="image/x-icon" href="icons/favicon.ico">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <link rel="manifest" href="manifest.json">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header class="app-header">
+    <div class="app-title">
+      <img src="icons/logo-header.png" alt="Logo" style="width:34px; height:34px; border-radius:8px; object-fit:cover; border:1.5px solid #FFFFFF;">
+      <span>Smart PDF Pro</span>
+    </div>
+    <div class="header-actions">
+      <button id="headerVoiceBtn" class="voice-header-btn" title="Voice Commands">
+        <span class="mic-icon">🎙️</span>
+        <span>Voice</span>
+      </button>
+      <div class="offline-badge">
+        <span>🔒</span>
+        <span>Offline</span>
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+    <!-- Quick Install App Banner -->
+    <div id="installBanner" class="install-banner">
+      <img src="icons/icon-192.png" alt="Smart PDF Pro" class="install-icon">
+      <div class="install-info">
+        <div class="install-title">Smart PDF Pro App</div>
+        <div class="install-desc">Install on Home Screen for 1-tap offline access</div>
+      </div>
+      <button id="installAppBtn" class="btn-install">Install App</button>
+    </div>
+
+    <!-- Tab Navigation -->
+    <nav class="tab-nav">
+      <button class="tab-btn active" data-tab="tab-form">Fill Form</button>
+      <button class="tab-btn" data-tab="tab-scan">📷 Scan Doc</button>
+      <button class="tab-btn" data-tab="tab-sign">Sign Document</button>
+      <button class="tab-btn" data-tab="tab-redact">Redact PDF</button>
+      <button class="tab-btn" data-tab="tab-merge">Merge PDFs</button>
+    </nav>
+
+    <!-- TAB 1: FILL PDF FORM -->
+    <section id="tab-form" class="tool-card active">
+      <div class="tool-header">
+        <h2>Fill Official PDF Form</h2>
+        <p>Complete details in authority application forms and flatten them for submission.</p>
+      </div>
+
+      <div class="dropzone" id="formDropzone">
+        <div class="dropzone-icon">📋</div>
+        <div class="dropzone-text">Tap to select PDF form</div>
+        <div class="dropzone-hint">Compatible with Tax, Visa, Legal & Govt forms</div>
+      </div>
+      <input type="file" id="formFileInput" accept="application/pdf" style="display:none">
+      <div id="formFilePill" class="selected-file-pill" style="display:none"></div>
+
+      <div id="formFieldsContainer"></div>
+
+      <label class="checkbox-row">
+        <input type="checkbox" id="flattenFormCb" checked>
+        <span>Flatten form fields upon export (Required by authorities to prevent alteration)</span>
+      </label>
+
+      <button id="fillFormBtn" class="btn btn-primary" style="display:none">
+        <span>💾</span> Fill & Save Official Form
+      </button>
+
+      <div id="formStatus" class="status-box"></div>
+    </section>
+
+    <!-- TAB 2: SCAN DOCUMENT -->
+    <section id="tab-scan" class="tool-card">
+      <div class="tool-header">
+        <h2>📷 Document Scanner</h2>
+        <p>Capture receipts, contracts & multi-page documents with voice control or tap. Auto-enhances and generates a crisp PDF.</p>
+      </div>
+
+      <div class="scanner-container">
+        <!-- Live Video Viewfinder -->
+        <div class="viewfinder-wrapper" id="viewfinderWrapper">
+          <video id="scanVideo" autoplay playsinline muted></video>
+          <canvas id="scanCanvas" style="display:none;"></canvas>
+
+          <!-- Indian Tricolor Document Alignment Frame -->
+          <div class="viewfinder-overlay">
+            <div class="corner corner-tl"></div>
+            <div class="corner corner-tr"></div>
+            <div class="corner corner-bl"></div>
+            <div class="corner corner-br"></div>
+            <div class="scan-line"></div>
+            <div class="viewfinder-hint" id="viewfinderHint">Align document within the frame</div>
+          </div>
+        </div>
+
+        <!-- Camera Controls -->
+        <div class="scanner-controls-bar">
+          <button id="toggleCameraBtn" class="scanner-tool-btn" type="button" title="Flip Camera">
+            🔄 Flip
+          </button>
+          
+          <button id="shutterBtn" class="shutter-button" type="button" title="Capture Page">
+            <div class="shutter-inner">
+              <span class="shutter-icon">📸</span>
+            </div>
+          </button>
+
+          <button id="galleryPickBtn" class="scanner-tool-btn" type="button" title="Pick Photo">
+            📁 Gallery
+          </button>
+          <input type="file" id="scanGalleryInput" accept="image/*" capture="environment" multiple style="display:none">
+        </div>
+
+        <!-- Voice Prompt Guidance Banner -->
+        <div class="voice-scan-prompt">
+          <span class="mic-glyph">🎙️</span> Voice: Say <b>"Capture"</b> to snap page &bull; <b>"Save PDF"</b> to finish
+        </div>
+
+        <!-- Enhancement Mode Selector -->
+        <div class="enhance-mode-bar">
+          <span class="enhance-label">Enhance Filter:</span>
+          <div class="enhance-options">
+            <button class="enhance-chip active" type="button" data-filter="bw">Clean B&W</button>
+            <button class="enhance-chip" type="button" data-filter="color">Vibrant Color</button>
+            <button class="enhance-chip" type="button" data-filter="original">Original</button>
+          </div>
+        </div>
+
+        <!-- Scanned Pages Reel -->
+        <div id="scannedReelContainer" class="scanned-reel-container" style="display:none;">
+          <div class="reel-header">
+            <span class="reel-title">Scanned Pages (<span id="pageCountLabel">0</span>)</span>
+            <button id="clearScanPagesBtn" class="btn-clear-reel" type="button">Clear All</button>
+          </div>
+          <div id="scannedThumbnailsList" class="scanned-thumbnails-list">
+            <!-- Dynamic thumbnails added here -->
+          </div>
+        </div>
+
+        <!-- Document Export Bar -->
+        <div id="scanExportBar" class="scan-export-bar" style="display:none;">
+          <div class="form-group" style="margin-bottom:12px;">
+            <label>Output PDF Filename:</label>
+            <input type="text" id="scanOutputFilename" class="input-control" value="Smart_PDF_Pro_Scan.pdf">
+          </div>
+          <button id="saveScanPdfBtn" class="btn btn-primary" type="button" style="width:100%;">
+            <span>📄</span> Save & Export Multi-Page PDF
+          </button>
+        </div>
+
+        <div id="scanStatus" class="status-box"></div>
+      </div>
+    </section>
+
+    <!-- TAB 3: SIGN DOCUMENT -->
+    <section id="tab-sign" class="tool-card">
+      <div class="tool-header">
+        <h2>Sign Document & Upload Signature</h2>
+        <p>Upload a signature image or draw directly with finger or stylus / Apple Pencil.</p>
+      </div>
+
+      <div class="dropzone" id="sigPdfDropzone">
+        <div class="dropzone-icon">📑</div>
+        <div class="dropzone-text">Tap to select PDF document to sign</div>
+      </div>
+      <input type="file" id="sigPdfInput" accept="application/pdf" style="display:none">
+      <div id="sigPdfPill" class="selected-file-pill" style="display:none"></div>
+
+      <!-- Signature Input Methods -->
+      <div class="form-group">
+        <label>Draw Signature on Touchscreen:</label>
+        <div class="sig-canvas-container">
+          <canvas id="signatureCanvas"></canvas>
+        </div>
+        <div class="sig-actions">
+          <button id="clearSigBtn" class="btn btn-secondary">Clear Pad</button>
+          <label class="btn btn-secondary" style="cursor:pointer; margin:0;">
+            <span>Upload Image</span>
+            <input type="file" id="sigImageInput" accept="image/*" style="display:none">
+          </label>
+        </div>
+        <div id="sigImagePill" class="selected-file-pill" style="display:none"></div>
+      </div>
+
+      <!-- Position & Settings -->
+      <div class="grid-2">
+        <div class="form-group">
+          <label>Target Page:</label>
+          <select id="sigPageSelect" class="input-control">
+            <option value="last">Last Page (Recommended)</option>
+            <option value="first">First Page</option>
+            <option value="all">All Pages</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Placement Position:</label>
+          <select id="sigPlacementSelect" class="input-control">
+            <option value="bottom-right">Bottom-Right (Standard)</option>
+            <option value="bottom-left">Bottom-Left</option>
+            <option value="bottom-center">Bottom-Center</option>
+            <option value="top-right">Top-Right</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="form-group">
+          <label>Width (pt):</label>
+          <input type="number" id="sigWidthInput" class="input-control" value="150">
+        </div>
+        <div class="form-group">
+          <label>Height (pt):</label>
+          <input type="number" id="sigHeightInput" class="input-control" value="50">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Signer Name / Title Stamp (Optional):</label>
+        <input type="text" id="signerNameInput" class="input-control" placeholder="e.g. Authorized Signatory: Rajesh Sharma">
+      </div>
+
+      <div class="form-group">
+        <label>Date Stamp (Optional):</label>
+        <input type="text" id="signerDateInput" class="input-control" placeholder="e.g. Date: 2026-11-02">
+      </div>
+
+      <button id="signPdfBtn" class="btn btn-primary">
+        <span>✍️</span> Embed Signature & Export PDF
+      </button>
+
+      <div id="sigStatus" class="status-box"></div>
+    </section>
+
+    <!-- TAB 3: REDACT PDF -->
+    <section id="tab-redact" class="tool-card">
+      <div class="tool-header">
+        <h2>Permanent Defense-Grade Redaction</h2>
+        <p>Permanently black out sensitive data and bake it into raw image pixels so it can never be unmasked.</p>
+      </div>
+
+      <div class="dropzone" id="redactDropzone">
+        <div class="dropzone-icon">🛡️</div>
+        <div class="dropzone-text">Tap to select PDF to redact</div>
+      </div>
+      <input type="file" id="redactFileInput" accept="application/pdf" style="display:none">
+      <div id="redactFilePill" class="selected-file-pill" style="display:none"></div>
+
+      <div class="form-group">
+        <label>Words / Phrases to Redact:</label>
+        <input type="text" id="redactTermsInput" class="input-control" placeholder="e.g. Confidential, Aadhaar, PAN, Account No">
+      </div>
+
+      <div class="form-group">
+        <label>Automatic Pattern Redactions:</label>
+        <div style="display: flex; gap: 14px; flex-wrap: wrap; margin-top: 6px;">
+          <label class="checkbox-row" style="margin: 0;">
+            <input type="checkbox" id="redactSsnCb" checked>
+            <span>SSN / Aadhaar</span>
+          </label>
+          <label class="checkbox-row" style="margin: 0;">
+            <input type="checkbox" id="redactEmailCb" checked>
+            <span>Email</span>
+          </label>
+          <label class="checkbox-row" style="margin: 0;">
+            <input type="checkbox" id="redactPhoneCb">
+            <span>Phone</span>
+          </label>
+        </div>
+      </div>
+
+      <label class="checkbox-row">
+        <input type="checkbox" id="redactBakeCb" checked>
+        <span><b>Defense-Grade Raster Bake:</b> Burn mask into raw pixels so text can NEVER be recovered</span>
+      </label>
+
+      <button id="redactBtn" class="btn btn-primary">
+        <span>🔒</span> Permanently Redact & Download PDF
+      </button>
+
+      <div id="redactStatus" class="status-box"></div>
+    </section>
+
+    <!-- TAB 4: MERGE PDFS -->
+    <section id="tab-merge" class="tool-card">
+      <div class="tool-header">
+        <h2>Merge Multiple PDFs</h2>
+        <p>Combine multiple documents into one single PDF file.</p>
+      </div>
+
+      <div class="dropzone" id="mergeDropzone">
+        <div class="dropzone-icon">📚</div>
+        <div class="dropzone-text">Tap to select 2 or more PDFs</div>
+      </div>
+      <input type="file" id="mergeFileInput" accept="application/pdf" multiple style="display:none">
+      <div id="mergeFilePill" class="selected-file-pill" style="display:none"></div>
+
+      <button id="mergeBtn" class="btn btn-primary" style="display:none">
+        <span>🔗</span> Merge Documents Now
+      </button>
+
+      <div id="mergeStatus" class="status-box"></div>
+    </section>
+  </main>
+
+  <!-- Floating Voice Assistant Button -->
+  <button id="floatingVoiceBtn" class="floating-voice-btn" title="Voice Commands (Tap to Speak)">
+    🎙️
+  </button>
+
+  <!-- VOICE COMMAND MODAL -->
+  <div id="voiceModal" class="voice-modal-overlay">
+    <div class="voice-modal-card">
+      <button id="voiceCloseBtn" class="voice-close-btn">&times;</button>
+      <div class="voice-modal-header">
+        <h3>🎙️ Smart Voice Assistant</h3>
+        <p>Speak natural instructions to control Smart PDF Pro</p>
+      </div>
+
+      <div class="voice-mic-container">
+        <div id="voicePulseRing" class="voice-pulse-ring"></div>
+        <div id="voicePulseRing2" class="voice-pulse-ring-2"></div>
+        <div id="voiceMicCircle" class="voice-mic-circle">🎙️</div>
+      </div>
+
+      <div id="voiceStatusText" class="voice-status-text">Tap mic to speak...</div>
+      <div id="voiceTranscriptBox" class="voice-transcript-box">"Scan document", "Capture page", "Merge PDFs", "Sign document", "Fill form", "Save PDF"...</div>
+
+      <div class="voice-tips-title">Sample Voice Commands</div>
+      <div class="voice-tips-grid">
+        <span class="voice-tip-pill" data-cmd="Scan document">"Scan document"</span>
+        <span class="voice-tip-pill" data-cmd="Capture page">"Capture page"</span>
+        <span class="voice-tip-pill" data-cmd="Save PDF">"Save PDF"</span>
+        <span class="voice-tip-pill" data-cmd="Merge PDFs">"Merge PDFs"</span>
+        <span class="voice-tip-pill" data-cmd="Sign document">"Sign document"</span>
+        <span class="voice-tip-pill" data-cmd="Fill form">"Fill form"</span>
+        <span class="voice-tip-pill" data-cmd="Redact PDF">"Redact PDF"</span>
+        <span class="voice-tip-pill" data-cmd="Clear pad">"Clear pad"</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- INSTALL APP GUIDE MODAL (Both Safari & Chrome on iPhone) -->
+  <div id="installModal" class="voice-modal-overlay">
+    <div class="install-modal-card">
+      <button id="installCloseBtn" class="voice-close-btn">&times;</button>
+      
+      <div class="install-modal-header">
+        <img src="icons/icon-192.png" alt="Smart PDF Pro" style="width:50px; height:50px; border-radius:12px; margin-bottom:6px; border:1px solid #FFD8B3;">
+        <h3>Install Smart PDF Pro</h3>
+        <p>1-tap Home Screen access with 100% offline private tools</p>
+      </div>
+
+      <!-- Browser Choice Switcher -->
+      <div class="install-tabs">
+        <button class="install-tab-btn active" data-target="guide-chrome" type="button">
+          <span>🌐</span> Chrome
+        </button>
+        <button class="install-tab-btn" data-target="guide-safari" type="button">
+          <span>🧭</span> Safari
+        </button>
+        <button class="install-tab-btn" data-target="guide-android" type="button">
+          <span>🤖</span> Android
+        </button>
+      </div>
+
+      <!-- Guide 1: Google Chrome on iPhone -->
+      <div id="guide-chrome" class="install-guide-panel active">
+        <div class="install-step">
+          <div class="step-num">1</div>
+          <div class="step-text">Tap the <b>Share icon</b> (square with up arrow) next to address bar, or tap the <b>`...` (menu)</b>.</div>
+        </div>
+        <div class="install-step">
+          <div class="step-num">2</div>
+          <div class="step-text">Scroll and tap <b>"Add to Home Screen"</b> ➕.</div>
+        </div>
+        <div class="install-step">
+          <div class="step-num">3</div>
+          <div class="step-text">Tap <b>"Add"</b> at the top-right corner. Smart PDF Pro will now be on your Home Screen!</div>
+        </div>
+      </div>
+
+      <!-- Guide 2: Apple Safari on iPhone -->
+      <div id="guide-safari" class="install-guide-panel">
+        <div class="install-step">
+          <div class="step-num">1</div>
+          <div class="step-text">Tap the <b>Share button</b> (square with up arrow) in Safari's bottom toolbar.</div>
+        </div>
+        <div class="install-step">
+          <div class="step-num">2</div>
+          <div class="step-text">Scroll down the share sheet and tap <b>"Add to Home Screen"</b> ➕.</div>
+        </div>
+        <div class="install-step">
+          <div class="step-num">3</div>
+          <div class="step-text">Tap <b>"Add"</b> in the top right. You're done!</div>
+        </div>
+      </div>
+
+      <!-- Guide 3: Android Phone -->
+      <div id="guide-android" class="install-guide-panel">
+        <div class="install-step">
+          <div class="step-num">1</div>
+          <div class="step-text">Tap your Chrome menu <b>⋮ (three dots)</b> at the top right.</div>
+        </div>
+        <div class="install-step">
+          <div class="step-num">2</div>
+          <div class="step-text">Tap <b>"Install app"</b> or <b>"Add to Home screen"</b>.</div>
+        </div>
+        <div class="install-step">
+          <div class="step-num">3</div>
+          <div class="step-text">Tap <b>"Install"</b> to confirm.</div>
+        </div>
+      </div>
+
+      <button id="installGotItBtn" class="btn btn-primary" type="button" style="margin-top:16px; width:100%;">
+        Got it!
+      </button>
+    </div>
+  </div>
+
+  <!-- Offline Script Bundle -->
+  <script src="js/pdf-lib.min.js"></script>
+  <script src="js/app.js"></script>
+  <script>
+    // Register PWA Service Worker for offline mobile execution
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('sw.js').catch(err => console.log('SW register note:', err));
+      });
+    }
+  </script>
+</body>
+</html>
