@@ -58,14 +58,70 @@ function showStatus(elementId, text, type = 'loading') {
 }
 
 // ==========================================
-// FEATURE 1: FILL PDF FORM DETAILS
+// FEATURE 1: UNIVERSAL FORM FILLER (AcroForms & Flat/Scanned PDFs)
 // ==========================================
 const formFileInput = document.getElementById('formFileInput');
 const formDropzone = document.getElementById('formDropzone');
-const formFieldsContainer = document.getElementById('formFieldsContainer');
-const fillFormBtn = document.getElementById('fillFormBtn');
 const formPill = document.getElementById('formFilePill');
 
+// Mode Switcher Elements
+const formModeSwitcher = document.getElementById('formModeSwitcher');
+const btnModeVisual = document.getElementById('btnModeVisual');
+const btnModeAcro = document.getElementById('btnModeAcro');
+const acroFieldCount = document.getElementById('acroFieldCount');
+
+// AcroForm Container Elements
+const formAcroContainer = document.getElementById('formAcroContainer');
+const formFieldsContainer = document.getElementById('formFieldsContainer');
+const fillAcroFormBtn = document.getElementById('fillAcroFormBtn');
+
+// Visual Form Filler Elements
+const formVisualContainer = document.getElementById('formVisualContainer');
+const visualGuidePill = document.getElementById('visualGuidePill');
+const formToolChips = document.querySelectorAll('.form-tool-chip');
+const formPrevPageBtn = document.getElementById('formPrevPageBtn');
+const formNextPageBtn = document.getElementById('formNextPageBtn');
+const formPageNumDisplay = document.getElementById('formPageNumDisplay');
+const formZoomOutBtn = document.getElementById('formZoomOutBtn');
+const formZoomInBtn = document.getElementById('formZoomInBtn');
+const formViewportWrapper = document.getElementById('formViewportWrapper');
+const formCanvasContainer = document.getElementById('formCanvasContainer');
+const formPdfCanvas = document.getElementById('formPdfCanvas');
+const formAnnotationOverlay = document.getElementById('formAnnotationOverlay');
+const formAnnotationCount = document.getElementById('formAnnotationCount');
+const clearPageAnnotationsBtn = document.getElementById('clearPageAnnotationsBtn');
+const saveVisualFormBtn = document.getElementById('saveVisualFormBtn');
+const flattenVisualFormCb = document.getElementById('flattenVisualFormCb');
+
+// Visual Form Filler State
+let currentPdfJsDoc = null;
+let currentFormPageNum = 1;
+let totalFormPages = 1;
+let currentFormScale = 1.0;
+let activeFormTool = 'text'; // 'text', 'check', 'cross', 'date', 'sign'
+let formPageAnnotations = {}; // { 1: [ ... ], 2: [ ... ] }
+let selectedAnnotationId = null;
+
+// Initialize PDF.js worker
+if (typeof pdfjsLib !== 'undefined') {
+  try {
+    pdfjsLib.GlobalWorkerOptions.workerSrc = './pdf.worker.min.js';
+  } catch (e) {
+    console.log('PDF.js worker init note:', e);
+  }
+}
+
+// Helper: Check if canvas has drawing
+function isCanvasBlank(canvas) {
+  if (!canvas) return true;
+  const ctx = canvas.getContext('2d');
+  const pixelBuffer = new Uint32Array(
+    ctx.getImageData(0, 0, canvas.width, canvas.height).data.buffer
+  );
+  return !pixelBuffer.some(color => color !== 0);
+}
+
+// Dropzone File Select
 formDropzone.addEventListener('click', () => formFileInput.click());
 
 formFileInput.addEventListener('change', async (e) => {
@@ -75,103 +131,633 @@ formFileInput.addEventListener('change', async (e) => {
   formPill.textContent = `Selected: ${file.name} (${(file.size / 1024).toFixed(1)} KB)`;
   formPill.style.display = 'flex';
   
-  showStatus('formStatus', 'Inspecting PDF form fields...', 'loading');
+  showStatus('formStatus', 'Analyzing form structure and loading pages...', 'loading');
   try {
     const buffer = await readFileAsBuffer(file);
     state.currentPdfBytes = buffer;
+    
+    // 1. Inspect for AcroForm fields with PDF-Lib
     const pdfDoc = await PDFDocument.load(buffer, { ignoreEncryption: true });
-    const form = pdfDoc.getForm();
-    const fields = form.getFields();
+    let fields = [];
+    try {
+      const form = pdfDoc.getForm();
+      fields = form.getFields();
+    } catch (e) {
+      fields = [];
+    }
     
     state.detectedFields = [];
     formFieldsContainer.innerHTML = '';
     
-    if (fields.length === 0) {
-      showStatus('formStatus', 'No fillable AcroForm fields found in this document (it may be a scanned or flat PDF). You can still add details via the Signature / Stamp tool.', 'error');
-      fillFormBtn.style.display = 'none';
-      return;
+    if (fields.length > 0) {
+      // Document has AcroForm fields! Populate AcroForm container
+      acroFieldCount.textContent = fields.length;
+      formModeSwitcher.style.display = 'flex';
+      
+      fields.forEach(field => {
+        const name = field.getName();
+        const type = field.constructor.name;
+        state.detectedFields.push({ name, type });
+        
+        const fieldGroup = document.createElement('div');
+        fieldGroup.className = 'form-group';
+        
+        const label = document.createElement('label');
+        label.textContent = `${name} (${type.replace('PDF', '').replace('Field', '')})`;
+        fieldGroup.appendChild(label);
+        
+        if (type.includes('CheckBox')) {
+          const checkWrap = document.createElement('label');
+          checkWrap.className = 'checkbox-row';
+          const cb = document.createElement('input');
+          cb.type = 'checkbox';
+          cb.id = `field_${name}`;
+          try { cb.checked = field.isChecked(); } catch (err) {}
+          const txt = document.createElement('span');
+          txt.textContent = 'Check to select / mark yes';
+          checkWrap.appendChild(cb);
+          checkWrap.appendChild(txt);
+          fieldGroup.appendChild(checkWrap);
+        } else {
+          const input = document.createElement('input');
+          input.type = 'text';
+          input.className = 'input-control';
+          input.id = `field_${name}`;
+          try { input.value = field.getText() || ''; } catch (err) {}
+          input.placeholder = `Enter ${name}...`;
+          fieldGroup.appendChild(input);
+        }
+        formFieldsContainer.appendChild(fieldGroup);
+      });
+      
+      // Default to Visual Mode for intuitive form completion
+      btnModeVisual.classList.add('active');
+      btnModeAcro.classList.remove('active');
+      formVisualContainer.style.display = 'block';
+      formAcroContainer.style.display = 'none';
+    } else {
+      // Flat or Scanned PDF (like ADNIC Shifa Insurance Form)
+      formModeSwitcher.style.display = 'none';
+      formAcroContainer.style.display = 'none';
+      formVisualContainer.style.display = 'block';
     }
-    
-    fields.forEach(field => {
-      const name = field.getName();
-      const type = field.constructor.name;
-      state.detectedFields.push({ name, type });
-      
-      const fieldGroup = document.createElement('div');
-      fieldGroup.className = 'form-group';
-      
-      const label = document.createElement('label');
-      label.textContent = `${name} (${type.replace('PDF', '').replace('Field', '')})`;
-      fieldGroup.appendChild(label);
-      
-      if (type.includes('CheckBox')) {
-        const checkWrap = document.createElement('label');
-        checkWrap.className = 'checkbox-row';
-        const cb = document.createElement('input');
-        cb.type = 'checkbox';
-        cb.id = `field_${name}`;
-        try { cb.checked = field.isChecked(); } catch (err) {}
-        const txt = document.createElement('span');
-        txt.textContent = 'Check to select / mark yes';
-        checkWrap.appendChild(cb);
-        checkWrap.appendChild(txt);
-        fieldGroup.appendChild(checkWrap);
-      } else {
-        const input = document.createElement('input');
-        input.type = 'text';
-        input.className = 'input-control';
-        input.id = `field_${name}`;
-        try { input.value = field.getText() || ''; } catch (err) {}
-        input.placeholder = `Enter ${name}...`;
-        fieldGroup.appendChild(input);
+
+    // 2. Load PDF into PDF.js for interactive page rendering
+    if (typeof pdfjsLib !== 'undefined') {
+      try {
+        currentPdfJsDoc = await pdfjsLib.getDocument({ data: new Uint8Array(buffer) }).promise;
+        totalFormPages = currentPdfJsDoc.numPages;
+        currentFormPageNum = 1;
+        currentFormScale = 1.0;
+        formPageAnnotations = {};
+        for (let p = 1; p <= totalFormPages; p++) {
+          formPageAnnotations[p] = [];
+        }
+        await renderFormPdfPage(currentFormPageNum);
+        showStatus('formStatus', `Document loaded (${totalFormPages} page(s)). Tap anywhere on the page to fill in details.`, 'success');
+      } catch (pdfJsErr) {
+        console.error('PDF.js render error:', pdfJsErr);
+        showStatus('formStatus', 'Render notice: Could not render interactive preview. You can still use AcroForm mode.', 'error');
       }
-      formFieldsContainer.appendChild(fieldGroup);
-    });
-    
-    showStatus('formStatus', `Found ${fields.length} interactive form field(s). Fill in details below:`, 'success');
-    fillFormBtn.style.display = 'block';
+    } else {
+      showStatus('formStatus', 'PDF preview engine loading...', 'loading');
+    }
   } catch (err) {
     showStatus('formStatus', `Could not inspect PDF: ${err.message}`, 'error');
   }
 });
 
-fillFormBtn.addEventListener('click', async () => {
-  if (!state.currentPdfBytes) return;
-  showStatus('formStatus', 'Filling form and flattening for submission...', 'loading');
+// Mode Switcher handlers
+if (btnModeVisual && btnModeAcro) {
+  btnModeVisual.addEventListener('click', () => {
+    btnModeVisual.classList.add('active');
+    btnModeAcro.classList.remove('active');
+    formVisualContainer.style.display = 'block';
+    formAcroContainer.style.display = 'none';
+    renderFormPdfPage(currentFormPageNum);
+  });
+
+  btnModeAcro.addEventListener('click', () => {
+    btnModeAcro.classList.add('active');
+    btnModeVisual.classList.remove('active');
+    formAcroContainer.style.display = 'block';
+    formVisualContainer.style.display = 'none';
+  });
+}
+
+// AcroForm fill button handler
+if (fillAcroFormBtn) {
+  fillAcroFormBtn.addEventListener('click', async () => {
+    if (!state.currentPdfBytes) return;
+    showStatus('formStatus', 'Filling form and flattening for submission...', 'loading');
+    try {
+      const pdfDoc = await PDFDocument.load(state.currentPdfBytes, { ignoreEncryption: true });
+      const form = pdfDoc.getForm();
+      
+      state.detectedFields.forEach(f => {
+        const elem = document.getElementById(`field_${f.name}`);
+        if (!elem) return;
+        try {
+          if (f.type.includes('CheckBox')) {
+            const cb = form.getCheckBox(f.name);
+            if (elem.checked) cb.check(); else cb.uncheck();
+          } else if (f.type.includes('TextField')) {
+            const tf = form.getTextField(f.name);
+            tf.setText(elem.value);
+          }
+        } catch (e) {
+          console.warn(`Could not set field ${f.name}:`, e);
+        }
+      });
+      
+      const flattenCheckbox = document.getElementById('flattenAcroCb');
+      if (flattenCheckbox && flattenCheckbox.checked) {
+        form.flatten();
+      }
+      
+      const outBytes = await pdfDoc.save();
+      const outName = state.currentPdfName.replace('.pdf', '') + '_filled_official.pdf';
+      downloadPdf(outBytes, outName);
+      showStatus('formStatus', `Successfully filled and exported: ${outName}`, 'success');
+      speakReply('Your filled form has been saved.');
+    } catch (err) {
+      showStatus('formStatus', `Error saving form: ${err.message}`, 'error');
+    }
+  });
+}
+
+// ==========================================
+// VISUAL FORM FILLER ENGINE (Tap-to-Fill)
+// ==========================================
+// Tool selection
+formToolChips.forEach(chip => {
+  chip.addEventListener('click', () => {
+    formToolChips.forEach(c => c.classList.remove('active'));
+    chip.classList.add('active');
+    activeFormTool = chip.dataset.tool;
+  });
+});
+
+// Render PDF Page onto Canvas
+async function renderFormPdfPage(pageNum) {
+  if (!currentPdfJsDoc || !formPdfCanvas) return;
+  
+  try {
+    const page = await currentPdfJsDoc.getPage(pageNum);
+    
+    // Calculate display scale (fit comfortable width)
+    const containerW = formViewportWrapper.clientWidth ? formViewportWrapper.clientWidth - 24 : 700;
+    const baseViewport = page.getViewport({ scale: 1.0 });
+    const fitScale = (containerW / baseViewport.width) * currentFormScale;
+    const viewport = page.getViewport({ scale: fitScale });
+    
+    formPdfCanvas.width = viewport.width;
+    formPdfCanvas.height = viewport.height;
+    formCanvasContainer.style.width = viewport.width + 'px';
+    formCanvasContainer.style.height = viewport.height + 'px';
+    formAnnotationOverlay.style.width = viewport.width + 'px';
+    formAnnotationOverlay.style.height = viewport.height + 'px';
+    
+    const ctx = formPdfCanvas.getContext('2d');
+    await page.render({ canvasContext: ctx, viewport: viewport }).promise;
+    
+    formPageNumDisplay.textContent = `Page ${pageNum} / ${totalFormPages}`;
+    renderPageAnnotations();
+    updateAnnotationCount();
+  } catch (err) {
+    console.error('Page render error:', err);
+  }
+}
+
+// Page Navigation
+if (formPrevPageBtn) {
+  formPrevPageBtn.addEventListener('click', async () => {
+    if (currentFormPageNum > 1) {
+      currentFormPageNum--;
+      await renderFormPdfPage(currentFormPageNum);
+    }
+  });
+}
+
+if (formNextPageBtn) {
+  formNextPageBtn.addEventListener('click', async () => {
+    if (currentFormPageNum < totalFormPages) {
+      currentFormPageNum++;
+      await renderFormPdfPage(currentFormPageNum);
+    }
+  });
+}
+
+// Zoom controls
+if (formZoomInBtn) {
+  formZoomInBtn.addEventListener('click', async () => {
+    if (currentFormScale < 2.5) {
+      currentFormScale += 0.2;
+      await renderFormPdfPage(currentFormPageNum);
+    }
+  });
+}
+
+if (formZoomOutBtn) {
+  formZoomOutBtn.addEventListener('click', async () => {
+    if (currentFormScale > 0.6) {
+      currentFormScale -= 0.2;
+      await renderFormPdfPage(currentFormPageNum);
+    }
+  });
+}
+
+// Clear Page Annotations
+if (clearPageAnnotationsBtn) {
+  clearPageAnnotationsBtn.addEventListener('click', () => {
+    formPageAnnotations[currentFormPageNum] = [];
+    selectedAnnotationId = null;
+    renderPageAnnotations();
+    updateAnnotationCount();
+  });
+}
+
+function updateAnnotationCount() {
+  if (!formAnnotationCount) return;
+  const list = formPageAnnotations[currentFormPageNum] || [];
+  formAnnotationCount.textContent = `${list.length} item(s) added on Page ${currentFormPageNum}`;
+}
+
+// Tap on Document to Place Annotation
+if (formAnnotationOverlay) {
+  formAnnotationOverlay.addEventListener('click', (e) => {
+    // If clicked on an existing annotation or its controls, do not add a new one
+    if (e.target.closest('.annotation-box')) return;
+    
+    const rect = formAnnotationOverlay.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    
+    addAnnotationAt(x, y, activeFormTool);
+  });
+}
+
+function addAnnotationAt(x, y, tool) {
+  if (!formPageAnnotations[currentFormPageNum]) {
+    formPageAnnotations[currentFormPageNum] = [];
+  }
+  
+  const id = Date.now() + Math.random();
+  let newAnnot = null;
+  
+  if (tool === 'text') {
+    newAnnot = {
+      id,
+      type: 'text',
+      text: '',
+      fontSize: 13,
+      x: Math.max(5, x - 10),
+      y: Math.max(5, y - 10),
+      width: 140,
+      height: 24
+    };
+  } else if (tool === 'check') {
+    newAnnot = {
+      id,
+      type: 'check',
+      text: '✓',
+      fontSize: 18,
+      x: Math.max(5, x - 10),
+      y: Math.max(5, y - 10),
+      width: 24,
+      height: 24
+    };
+  } else if (tool === 'cross') {
+    newAnnot = {
+      id,
+      type: 'cross',
+      text: '✗',
+      fontSize: 18,
+      x: Math.max(5, x - 10),
+      y: Math.max(5, y - 10),
+      width: 24,
+      height: 24
+    };
+  } else if (tool === 'date') {
+    const today = new Date();
+    const dStr = String(today.getDate()).padStart(2, '0') + '/' + 
+                 String(today.getMonth() + 1).padStart(2, '0') + '/' + 
+                 today.getFullYear();
+    newAnnot = {
+      id,
+      type: 'text',
+      text: dStr,
+      fontSize: 13,
+      x: Math.max(5, x - 10),
+      y: Math.max(5, y - 10),
+      width: 95,
+      height: 24
+    };
+  } else if (tool === 'sign') {
+    const sigCanvas = document.getElementById('signatureCanvas');
+    let sigData = null;
+    if (sigCanvas && !isCanvasBlank(sigCanvas)) {
+      sigData = sigCanvas.toDataURL('image/png');
+    }
+    newAnnot = {
+      id,
+      type: 'sign',
+      dataUrl: sigData,
+      text: '✍️ Signature',
+      fontSize: 14,
+      x: Math.max(5, x - 10),
+      y: Math.max(5, y - 10),
+      width: 120,
+      height: 38
+    };
+  }
+  
+  if (newAnnot) {
+    formPageAnnotations[currentFormPageNum].push(newAnnot);
+    selectedAnnotationId = id;
+    renderPageAnnotations();
+    updateAnnotationCount();
+  }
+}
+
+// Render Annotations onto the Overlay
+function renderPageAnnotations() {
+  if (!formAnnotationOverlay) return;
+  formAnnotationOverlay.innerHTML = '';
+  const list = formPageAnnotations[currentFormPageNum] || [];
+  
+  list.forEach(annot => {
+    const box = document.createElement('div');
+    box.className = 'annotation-box' + (selectedAnnotationId === annot.id ? ' active' : '');
+    box.style.left = annot.x + 'px';
+    box.style.top = annot.y + 'px';
+    box.dataset.id = annot.id;
+    
+    // Micro action toolbar (A-, A+, Delete)
+    if (selectedAnnotationId === annot.id) {
+      const tb = document.createElement('div');
+      tb.className = 'annotation-micro-toolbar';
+      
+      const minusBtn = document.createElement('button');
+      minusBtn.className = 'micro-btn';
+      minusBtn.textContent = 'A-';
+      minusBtn.title = 'Smaller text';
+      minusBtn.onclick = (e) => {
+        e.stopPropagation();
+        annot.fontSize = Math.max(8, annot.fontSize - 1);
+        renderPageAnnotations();
+      };
+      
+      const plusBtn = document.createElement('button');
+      plusBtn.className = 'micro-btn';
+      plusBtn.textContent = 'A+';
+      plusBtn.title = 'Larger text';
+      plusBtn.onclick = (e) => {
+        e.stopPropagation();
+        annot.fontSize = Math.min(32, annot.fontSize + 1);
+        renderPageAnnotations();
+      };
+      
+      const delBtn = document.createElement('button');
+      delBtn.className = 'micro-btn del';
+      delBtn.innerHTML = '&times;';
+      delBtn.title = 'Delete';
+      delBtn.onclick = (e) => {
+        e.stopPropagation();
+        formPageAnnotations[currentFormPageNum] = formPageAnnotations[currentFormPageNum].filter(a => a.id !== annot.id);
+        selectedAnnotationId = null;
+        renderPageAnnotations();
+        updateAnnotationCount();
+      };
+      
+      tb.appendChild(minusBtn);
+      tb.appendChild(plusBtn);
+      tb.appendChild(delBtn);
+      box.appendChild(tb);
+    }
+    
+    if (annot.type === 'text') {
+      const input = document.createElement('input');
+      input.type = 'text';
+      input.className = 'annotation-input';
+      input.value = annot.text;
+      input.placeholder = 'Type here...';
+      input.style.fontSize = annot.fontSize + 'px';
+      input.oninput = (e) => {
+        annot.text = e.target.value;
+      };
+      input.onfocus = () => {
+        selectedAnnotationId = annot.id;
+        box.classList.add('active');
+      };
+      box.appendChild(input);
+      
+      // Auto-focus if newly placed
+      if (selectedAnnotationId === annot.id && !annot.text) {
+        setTimeout(() => input.focus(), 60);
+      }
+    } else if (annot.type === 'check') {
+      const glyph = document.createElement('span');
+      glyph.className = 'annotation-glyph check';
+      glyph.textContent = '✓';
+      glyph.style.fontSize = annot.fontSize + 'px';
+      box.appendChild(glyph);
+    } else if (annot.type === 'cross') {
+      const glyph = document.createElement('span');
+      glyph.className = 'annotation-glyph cross';
+      glyph.textContent = '✗';
+      glyph.style.fontSize = annot.fontSize + 'px';
+      box.appendChild(glyph);
+    } else if (annot.type === 'sign') {
+      if (annot.dataUrl) {
+        const img = document.createElement('img');
+        img.src = annot.dataUrl;
+        img.className = 'annotation-sig-img';
+        box.appendChild(img);
+      } else {
+        const span = document.createElement('span');
+        span.className = 'annotation-input';
+        span.textContent = '✍️ Signed';
+        span.style.fontSize = annot.fontSize + 'px';
+        box.appendChild(span);
+      }
+    }
+    
+    // Enable dragging
+    setupAnnotationDrag(box, annot);
+    
+    formAnnotationOverlay.appendChild(box);
+  });
+}
+
+// Drag & Drop Annotation Handler
+function setupAnnotationDrag(box, annot) {
+  let isDragging = false;
+  let startX, startY;
+  let origX, origY;
+  
+  const startDrag = (e) => {
+    if (e.target.classList.contains('micro-btn')) return;
+    isDragging = true;
+    selectedAnnotationId = annot.id;
+    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+    startX = clientX;
+    startY = clientY;
+    origX = annot.x;
+    origY = annot.y;
+    box.classList.add('active');
+  };
+  
+  const onDrag = (e) => {
+    if (!isDragging) return;
+    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+    const dx = clientX - startX;
+    const dy = clientY - startY;
+    
+    annot.x = Math.max(0, origX + dx);
+    annot.y = Math.max(0, origY + dy);
+    box.style.left = annot.x + 'px';
+    box.style.top = annot.y + 'px';
+  };
+  
+  const endDrag = () => {
+    if (isDragging) {
+      isDragging = false;
+    }
+  };
+  
+  box.addEventListener('mousedown', startDrag);
+  window.addEventListener('mousemove', onDrag);
+  window.addEventListener('mouseup', endDrag);
+  
+  box.addEventListener('touchstart', startDrag, { passive: true });
+  window.addEventListener('touchmove', onDrag, { passive: true });
+  window.addEventListener('touchend', endDrag);
+}
+
+// Save & Export Completed Visual Form
+async function saveVisualForm() {
+  if (!state.currentPdfBytes) {
+    alert('Please upload a PDF form first.');
+    return;
+  }
+  
+  showStatus('formStatus', 'Embedding details and burning entries into PDF...', 'loading');
   try {
     const pdfDoc = await PDFDocument.load(state.currentPdfBytes, { ignoreEncryption: true });
-    const form = pdfDoc.getForm();
+    const font = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+    const pages = pdfDoc.getPages();
     
-    state.detectedFields.forEach(f => {
-      const elem = document.getElementById(`field_${f.name}`);
-      if (!elem) return;
-      try {
-        if (f.type.includes('CheckBox')) {
-          const cb = form.getCheckBox(f.name);
-          if (elem.checked) cb.check(); else cb.uncheck();
-        } else if (f.type.includes('TextField')) {
-          const tf = form.getTextField(f.name);
-          tf.setText(elem.value);
+    for (let pNum = 1; pNum <= pages.length; pNum++) {
+      const annots = formPageAnnotations[pNum] || [];
+      if (annots.length === 0) continue;
+      
+      const page = pages[pNum - 1];
+      const { width: pdfW, height: pdfH } = page.getSize();
+      
+      // Calculate coordinate scale ratio between PDF points and rendered canvas
+      const scaleRatio = pdfW / (formPdfCanvas.width || pdfW);
+      
+      for (const a of annots) {
+        const x = a.x * scaleRatio;
+        const boxH = (a.height || 24) * scaleRatio;
+        const y = pdfH - (a.y * scaleRatio) - boxH;
+        const textSize = Math.max(8, a.fontSize * scaleRatio);
+        
+        if (a.type === 'text') {
+          if (a.text) {
+            // Clean text to ensure safe WinAnsi encoding for standard PDF fonts
+            const safeText = a.text.split('').map(ch => {
+              const code = ch.charCodeAt(0);
+              return ((code >= 32 && code <= 126) || (code >= 160 && code <= 255)) ? ch : ' ';
+            }).join('');
+            try {
+              page.drawText(safeText, {
+                x: x + 2,
+                y: y + 3,
+                size: textSize,
+                font: font,
+                color: rgb(0, 0, 0)
+              });
+            } catch (err) {
+              console.warn('Text render fallback:', err);
+            }
+          }
+        } else if (a.type === 'check') {
+          // Sharp vector checkmark (100% immune to font encoding limitations)
+          const sz = Math.max(12, textSize * 1.2);
+          const th = Math.max(1.8, sz * 0.15);
+          page.drawLine({
+            start: { x: x + 2, y: y + sz * 0.45 },
+            end: { x: x + 2 + sz * 0.35, y: y + 2 },
+            thickness: th,
+            color: rgb(0.02, 0.42, 0.22)
+          });
+          page.drawLine({
+            start: { x: x + 2 + sz * 0.35, y: y + 2 },
+            end: { x: x + 2 + sz, y: y + sz },
+            thickness: th,
+            color: rgb(0.02, 0.42, 0.22)
+          });
+        } else if (a.type === 'cross') {
+          // Sharp vector cross mark (100% immune to font encoding limitations)
+          const sz = Math.max(12, textSize * 1.1);
+          const th = Math.max(1.8, sz * 0.15);
+          page.drawLine({
+            start: { x: x + 2, y: y + 2 },
+            end: { x: x + 2 + sz, y: y + 2 + sz },
+            thickness: th,
+            color: rgb(0.86, 0.15, 0.15)
+          });
+          page.drawLine({
+            start: { x: x + 2, y: y + 2 + sz },
+            end: { x: x + 2 + sz, y: y + 2 },
+            thickness: th,
+            color: rgb(0.86, 0.15, 0.15)
+          });
+        } else if (a.type === 'sign' && a.dataUrl) {
+          try {
+            const pngBytes = await fetch(a.dataUrl).then(res => res.arrayBuffer());
+            const pngImage = await pdfDoc.embedPng(pngBytes);
+            const w = (a.width || 120) * scaleRatio;
+            const h = (a.height || 38) * scaleRatio;
+            page.drawImage(pngImage, {
+              x: x,
+              y: y,
+              width: w,
+              height: h
+            });
+          } catch (e) {
+            console.warn('Signature embed error:', e);
+          }
         }
-      } catch (e) {
-        console.warn(`Could not set field ${f.name}:`, e);
       }
-    });
+    }
     
-    const flattenCheckbox = document.getElementById('flattenFormCb');
-    if (flattenCheckbox && flattenCheckbox.checked) {
-      form.flatten();
+    const flattenVisualCb = document.getElementById('flattenVisualFormCb');
+    if (flattenVisualCb && flattenVisualCb.checked) {
+      try {
+        const form = pdfDoc.getForm();
+        form.flatten();
+      } catch (e) {}
     }
     
     const outBytes = await pdfDoc.save();
-    const outName = state.currentPdfName.replace('.pdf', '') + '_filled_official.pdf';
+    const outName = state.currentPdfName.replace('.pdf', '') + '_completed.pdf';
     downloadPdf(outBytes, outName);
     showStatus('formStatus', `Successfully filled and exported: ${outName}`, 'success');
+    speakReply('Your completed form has been saved.');
   } catch (err) {
+    console.error('Save form error:', err);
     showStatus('formStatus', `Error saving form: ${err.message}`, 'error');
   }
-});
+}
 
+if (saveVisualFormBtn) {
+  saveVisualFormBtn.addEventListener('click', saveVisualForm);
+}
 // ==========================================
 // FEATURE 2: SIGNATURE UPLOAD & DRAWING
 // ==========================================
@@ -1040,8 +1626,15 @@ function processVoiceCommand(rawTranscript) {
         closeVoiceModal();
         return;
       } else if (activeTab.id === 'tab-form') {
+        const visualBtn = document.getElementById('saveVisualFormBtn');
         const btn = document.getElementById('fillFormBtn');
-        if (btn && btn.style.display !== 'none') {
+        if (visualBtn && document.getElementById('formVisualContainer') && document.getElementById('formVisualContainer').style.display !== 'none') {
+          visualBtn.click();
+          voiceStatusText.textContent = '✅ Saving filled form PDF...';
+          speakReply('Saving and exporting completed form');
+          closeVoiceModal();
+          return;
+        } else if (btn && btn.style.display !== 'none') {
           btn.click();
           voiceStatusText.textContent = '✅ Filling and exporting form...';
           speakReply('Exporting filled form');
