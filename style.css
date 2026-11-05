@@ -1074,3 +1074,761 @@ body {
   color: #1E293B;
   line-height: 1.4;
 }
+
+
+/* ==========================================
+   FEATURE 6: COMPRESS PDF STYLES
+   ========================================== */
+.compress-stats-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: linear-gradient(135deg, #FFF4EC 0%, #F0FDF4 100%);
+  border: 1.5px solid #FFD8B3;
+  border-radius: 12px;
+  padding: 14px 18px;
+  margin-bottom: 16px;
+}
+
+.compress-stat-item {
+  display: flex;
+  flex-direction: column;
+}
+
+.compress-stat-label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: #64748B;
+  letter-spacing: 0.5px;
+}
+
+.compress-stat-val {
+  font-size: 17px;
+  font-weight: 800;
+  color: #0A1E5C;
+  margin-top: 2px;
+}
+
+.compress-stat-val.highlight {
+  color: #046A38;
+}
+
+.compress-stat-arrow {
+  font-size: 20px;
+  font-weight: 800;
+  color: #FF671F;
+}
+
+.compress-chips-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.compress-chip {
+  display: flex;
+  flex-direction: column;
+  padding: 13px 16px;
+  background: #FFFFFF;
+  border: 2px solid #E2E8F0;
+  border-radius: 12px;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.compress-chip:hover {
+  border-color: #FF671F;
+  background: #FFFBF8;
+}
+
+.compress-chip.active {
+  border-color: #FF671F;
+  background: #FFF4EC;
+  box-shadow: 0 3px 12px rgba(255, 103, 31, 0.15);
+}
+
+.chip-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.compress-chip .chip-title {
+  font-size: 14px;
+  font-weight: 800;
+  color: #0A1E5C;
+}
+
+.compress-chip.active .chip-title {
+  color: #FF671F;
+}
+
+.chip-badge {
+  font-size: 11px;
+  font-weight: 800;
+  padding: 2px 8px;
+  border-radius: 6px;
+  background: #EBF8FF;
+  color: #0284C7;
+}
+
+.compress-chip.active .chip-badge {
+  background: #046A38;
+  color: #FFFFFF;
+}
+
+.compress-chip .chip-desc {
+  font-size: 12px;
+  color: #64748B;
+  margin-top: 4px;
+  line-height: 1.4;
+}
+
+
+
+/* =========================================================================
+   TERMS OF USE, FOOTER & NATURAL MANUAL FORM FILLING STYLES
+   Sole Creator & Copyright: PRAKASH CHAND MEHTA
+   ========================================================================= */
+
+/* Legal Header Button */
+.legal-header-btn {
+  background: #FFF4EC;
+  color: #C2410C;
+  border: 1.5px solid #FFD8B3;
+  border-radius: 20px;
+  padding: 5px 11px;
+  font-size: 0.78rem;
+  font-weight: 800;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+}
+.legal-header-btn:active {
+  transform: scale(0.96);
+}
+
+/* Drawing Canvas & Secondary Controls */
+.form-drawing-canvas {
+  position: absolute;
+  inset: 0;
+  z-index: 15;
+  pointer-events: none;
+  touch-action: none;
+}
+.form-drawing-canvas.active-draw {
+  pointer-events: auto;
+  cursor: crosshair;
+}
+
+.form-drawing-controls {
+  background: #F8FAFC;
+  border: 1.5px solid #CBD5E1;
+  border-radius: 12px;
+  padding: 8px 12px;
+  margin-bottom: 10px;
+  animation: fadeIn 0.2s ease-out;
+}
+.drawing-options-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.ctrl-label {
+  font-size: 0.76rem;
+  font-weight: 800;
+  color: #334155;
+  text-transform: uppercase;
+}
+.ctrl-sep {
+  color: #CBD5E1;
+  font-weight: 300;
+}
+.color-palette {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.ink-btn {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 2px solid white;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.3);
+  cursor: pointer;
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+.ink-btn.active {
+  transform: scale(1.22);
+  border: 2.5px solid #FF671F;
+  box-shadow: 0 2px 8px rgba(255, 103, 31, 0.45);
+}
+.size-group {
+  display: flex;
+  gap: 4px;
+}
+.stroke-btn {
+  background: white;
+  border: 1px solid #CBD5E1;
+  border-radius: 6px;
+  padding: 3px 8px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #334155;
+  cursor: pointer;
+}
+.stroke-btn.active {
+  background: #0A1E5C;
+  color: white;
+  border-color: #0A1E5C;
+}
+.btn-undo-stroke, .btn-clear-drawings {
+  background: white;
+  border: 1px solid #CBD5E1;
+  border-radius: 6px;
+  padding: 3px 9px;
+  font-size: 0.74rem;
+  font-weight: 700;
+  cursor: pointer;
+  margin-left: auto;
+}
+.btn-clear-drawings {
+  color: #DC2626;
+  border-color: #FCA5A5;
+  background: #FEF2F2;
+  margin-left: 0;
+}
+
+/* NATURAL FORM FILLING (Direct Paper & Pen Feel, No Clunky Bounding Box) */
+.annotation-box {
+  position: absolute;
+  display: inline-flex;
+  align-items: flex-end;
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  user-select: none;
+  z-index: 25;
+  cursor: move;
+  transition: all 0.1s ease;
+}
+.annotation-box.active {
+  border-bottom: 2px solid #046A38 !important;
+  background: rgba(4, 106, 56, 0.06) !important;
+}
+
+.annotation-input {
+  border: none !important;
+  outline: none !important;
+  background: transparent !important;
+  color: #0F172A;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+  font-weight: 700;
+  padding: 0 1px !important;
+  margin: 0 !important;
+  line-height: 1.15;
+  min-width: 24px;
+}
+.annotation-input::placeholder {
+  color: rgba(100, 116, 139, 0.5);
+  font-weight: 500;
+  font-style: italic;
+}
+
+/* Micro-Toolbar with 1px Precision Nudge Arrows */
+.annotation-micro-toolbar {
+  position: absolute;
+  bottom: 100%;
+  left: 0;
+  margin-bottom: 4px;
+  background: #0A1E5C;
+  border-radius: 6px;
+  padding: 2px 4px;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  box-shadow: 0 3px 12px rgba(0,0,0,0.35);
+  z-index: 40;
+  white-space: nowrap;
+}
+.micro-btn {
+  background: rgba(255, 255, 255, 0.18);
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 2px 6px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  cursor: pointer;
+  line-height: 1.2;
+}
+.micro-btn:hover, .micro-btn:active {
+  background: rgba(255, 255, 255, 0.38);
+}
+.micro-btn.nudge-btn {
+  padding: 1px 5px;
+  font-size: 0.75rem;
+  color: #86EFAC;
+}
+.micro-btn.font-btn {
+  font-size: 0.68rem;
+  color: #FDE047;
+}
+.micro-btn.del {
+  background: #DC2626;
+  color: white;
+  margin-left: 2px;
+}
+
+/* Notation / Sticky Note Badge */
+.annotation-note-badge {
+  background: #FEF08A;
+  color: #713F12;
+  border: 1px solid #CA8A04;
+  border-radius: 6px;
+  padding: 4px 8px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  max-width: 220px;
+}
+
+/* Footer Styles */
+.app-footer {
+  margin-top: 36px;
+  padding: 0 16px 28px 16px;
+}
+.footer-legal-card {
+  background: #FFFFFF;
+  border: 1.5px solid #FFD8B3;
+  border-radius: 18px;
+  overflow: hidden;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+}
+.footer-tricolor-accent {
+  height: 5px;
+  background: linear-gradient(90deg, #FF671F 0%, #FF671F 33.3%, #FFFFFF 33.3%, #FFFFFF 66.6%, #046A38 66.6%, #046A38 100%);
+  border-bottom: 1px solid #E2E8F0;
+}
+.footer-content {
+  padding: 18px 20px;
+  text-align: center;
+}
+.footer-title {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: var(--navy);
+  margin-bottom: 4px;
+}
+.footer-author {
+  font-size: 0.88rem;
+  color: #1E293B;
+  margin-bottom: 2px;
+}
+.footer-author b {
+  color: #046A38;
+}
+.footer-copyright {
+  font-size: 0.78rem;
+  color: #64748B;
+  font-weight: 600;
+  margin-bottom: 10px;
+}
+.footer-notice {
+  font-size: 0.75rem;
+  color: #475569;
+  line-height: 1.45;
+  background: #F8FAFC;
+  border-radius: 10px;
+  padding: 10px 14px;
+  margin-bottom: 14px;
+  border: 1px solid #E2E8F0;
+}
+.footer-notice b {
+  color: #DC2626;
+}
+.btn-footer-terms {
+  background: #FFF4EC;
+  color: #C2410C;
+  border: 1.5px solid #FFD8B3;
+  border-radius: 20px;
+  padding: 7px 16px;
+  font-size: 0.8rem;
+  font-weight: 800;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+}
+.btn-footer-terms:hover {
+  background: #FFEDD5;
+}
+
+/* Terms Modal Card */
+.terms-modal-card {
+  background: #FFFFFF;
+  width: 95%;
+  max-width: 580px;
+  max-height: 90vh;
+  border-radius: 22px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.45);
+  border: 3px solid #FF671F;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: modalPop 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+.terms-crest-header {
+  background: linear-gradient(135deg, #0A1E5C 0%, #1E3A8A 100%);
+  color: white;
+  padding: 16px 20px;
+  text-align: center;
+  position: relative;
+  border-bottom: 3.5px solid #FF671F;
+}
+.terms-crest-emblem {
+  font-size: 2rem;
+  margin-bottom: 4px;
+}
+.terms-crest-header h3 {
+  font-size: 1.18rem;
+  font-weight: 800;
+  letter-spacing: 0.3px;
+  margin-bottom: 4px;
+}
+.terms-badge-pill {
+  display: inline-block;
+  background: rgba(255,255,255,0.18);
+  font-size: 0.72rem;
+  padding: 3px 12px;
+  border-radius: 12px;
+  font-weight: 700;
+  color: #FDE047;
+}
+
+.terms-author-banner {
+  background: #F0FDF4;
+  border-bottom: 1.5px solid #86EFAC;
+  padding: 10px 16px;
+  text-align: center;
+}
+.author-label {
+  font-size: 0.7rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  color: #166534;
+  letter-spacing: 0.5px;
+}
+.author-name {
+  font-size: 1.2rem;
+  font-weight: 900;
+  color: #046A38;
+  letter-spacing: 0.5px;
+}
+.author-rights {
+  font-size: 0.72rem;
+  color: #475569;
+  font-weight: 600;
+}
+
+.terms-scroll-body {
+  padding: 14px 18px;
+  overflow-y: auto;
+  max-height: 48vh;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  background: #FAFAFA;
+}
+.terms-clause {
+  display: flex;
+  gap: 12px;
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 12px;
+  padding: 10px 14px;
+  font-size: 0.8rem;
+  line-height: 1.45;
+  color: #334155;
+}
+.terms-clause.highlight-violation {
+  background: #FEF2F2;
+  border: 1.5px solid #FCA5A5;
+}
+.clause-num {
+  width: 24px;
+  height: 24px;
+  min-width: 24px;
+  border-radius: 50%;
+  background: #0A1E5C;
+  color: white;
+  font-weight: 800;
+  font-size: 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.clause-num.alert-num {
+  background: #DC2626;
+}
+.clause-body b {
+  display: block;
+  font-size: 0.83rem;
+  color: #0F172A;
+  margin-bottom: 2px;
+}
+.clause-body p {
+  margin: 0;
+}
+
+.terms-acceptance-gate {
+  background: #FFFFFF;
+  border-top: 2px solid #E2E8F0;
+  padding: 14px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.terms-checkbox-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  cursor: pointer;
+}
+.terms-checkbox-row input {
+  width: 20px;
+  height: 20px;
+  min-width: 20px;
+  margin-top: 2px;
+  accent-color: #046A38;
+}
+.terms-checkbox-text {
+  font-size: 0.79rem;
+  color: #1E293B;
+  line-height: 1.4;
+}
+.terms-checkbox-text b {
+  color: #046A38;
+}
+.btn-accept-terms {
+  width: 100%;
+  padding: 12px 18px;
+  font-size: 0.95rem;
+  font-weight: 800;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #046A38 0%, #059669 100%);
+  border: none;
+  color: white;
+  box-shadow: 0 4px 14px rgba(4, 106, 56, 0.35);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all 0.2s;
+}
+.btn-accept-terms:disabled {
+  background: #94A3B8;
+  box-shadow: none;
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+
+
+
+/* =========================================================================
+   TAB 7: OCR & MULTI-LANGUAGE TRANSLATION STYLES
+   Sole Creator & Copyright: PRAKASH CHAND MEHTA
+   ========================================================================= */
+.ocr-mode-switcher {
+  display: flex;
+  background: #F1F5F9;
+  border-radius: 12px;
+  padding: 4px;
+  gap: 6px;
+  margin-bottom: 14px;
+}
+.ocr-mode-btn {
+  flex: 1;
+  padding: 9px 12px;
+  border: none;
+  background: transparent;
+  color: #475569;
+  font-weight: 700;
+  font-size: 0.82rem;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.ocr-mode-btn.active {
+  background: white;
+  color: #0A1E5C;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+.language-select-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #FFFFFF;
+  border: 1.5px solid #FFD8B3;
+  border-radius: 14px;
+  padding: 12px 14px;
+  margin-bottom: 14px;
+}
+.lang-field-group {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.lang-field-group label {
+  font-size: 0.75rem;
+  font-weight: 800;
+  color: #0A1E5C;
+  text-transform: uppercase;
+}
+.lang-select {
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1.5px solid #CBD5E1;
+  background: #F8FAFC;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #1E293B;
+  outline: none;
+}
+.lang-select:focus {
+  border-color: #FF671F;
+}
+.lang-arrow {
+  font-size: 1.2rem;
+  font-weight: 900;
+  color: #FF671F;
+  margin-top: 14px;
+}
+
+.ocr-actions-row {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.dual-text-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+@media (max-width: 640px) {
+  .dual-text-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.text-box-col {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.text-box-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.text-box-title {
+  font-size: 0.82rem;
+  font-weight: 800;
+  color: #0A1E5C;
+}
+.text-meta-badge {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #64748B;
+  background: #F1F5F9;
+  padding: 2px 8px;
+  border-radius: 10px;
+}
+.ocr-textarea {
+  width: 100%;
+  height: 180px;
+  border-radius: 10px;
+  border: 1.5px solid #CBD5E1;
+  padding: 10px;
+  font-size: 0.82rem;
+  font-family: inherit;
+  color: #0F172A;
+  resize: vertical;
+  background: #FFFFFF;
+  line-height: 1.45;
+}
+.ocr-textarea:focus {
+  border-color: #046A38;
+  outline: none;
+}
+.btn-text-action {
+  align-self: flex-start;
+  background: #F1F5F9;
+  border: 1px solid #CBD5E1;
+  border-radius: 6px;
+  padding: 4px 10px;
+  font-size: 0.74rem;
+  font-weight: 700;
+  color: #334155;
+  cursor: pointer;
+}
+.btn-text-action:active {
+  background: #E2E8F0;
+}
+
+/* Official Translation Disclaimer Box */
+.translation-disclaimer-box {
+  background: #FFFBEB;
+  border: 1.5px solid #FCD34D;
+  border-radius: 12px;
+  padding: 12px 14px;
+  margin-bottom: 14px;
+  box-shadow: 0 2px 8px rgba(245, 158, 11, 0.08);
+}
+.disclaimer-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+.disclaimer-icon {
+  font-size: 1.1rem;
+}
+.disclaimer-heading {
+  font-size: 0.8rem;
+  font-weight: 800;
+  color: #92400E;
+  letter-spacing: 0.3px;
+}
+.disclaimer-body {
+  font-size: 0.75rem;
+  color: #78350F;
+  line-height: 1.45;
+  margin: 0 0 6px 0;
+}
+.disclaimer-footer {
+  font-size: 0.7rem;
+  color: #92400E;
+  font-weight: 600;
+  border-top: 1px dashed #FDE68A;
+  padding-top: 4px;
+}
+

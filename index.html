@@ -1340,6 +1340,760 @@ body {
   background: #DC2626;
 }
 
+
+/* ==========================================
+   FEATURE 6: COMPRESS PDF STYLES
+   ========================================== */
+.compress-stats-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: linear-gradient(135deg, #FFF4EC 0%, #F0FDF4 100%);
+  border: 1.5px solid #FFD8B3;
+  border-radius: 12px;
+  padding: 14px 18px;
+  margin-bottom: 16px;
+}
+
+.compress-stat-item {
+  display: flex;
+  flex-direction: column;
+}
+
+.compress-stat-label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: #64748B;
+  letter-spacing: 0.5px;
+}
+
+.compress-stat-val {
+  font-size: 17px;
+  font-weight: 800;
+  color: #0A1E5C;
+  margin-top: 2px;
+}
+
+.compress-stat-val.highlight {
+  color: #046A38;
+}
+
+.compress-stat-arrow {
+  font-size: 20px;
+  font-weight: 800;
+  color: #FF671F;
+}
+
+.compress-chips-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.compress-chip {
+  display: flex;
+  flex-direction: column;
+  padding: 13px 16px;
+  background: #FFFFFF;
+  border: 2px solid #E2E8F0;
+  border-radius: 12px;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.compress-chip:hover {
+  border-color: #FF671F;
+  background: #FFFBF8;
+}
+
+.compress-chip.active {
+  border-color: #FF671F;
+  background: #FFF4EC;
+  box-shadow: 0 3px 12px rgba(255, 103, 31, 0.15);
+}
+
+.chip-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.compress-chip .chip-title {
+  font-size: 14px;
+  font-weight: 800;
+  color: #0A1E5C;
+}
+
+.compress-chip.active .chip-title {
+  color: #FF671F;
+}
+
+.chip-badge {
+  font-size: 11px;
+  font-weight: 800;
+  padding: 2px 8px;
+  border-radius: 6px;
+  background: #EBF8FF;
+  color: #0284C7;
+}
+
+.compress-chip.active .chip-badge {
+  background: #046A38;
+  color: #FFFFFF;
+}
+
+.compress-chip .chip-desc {
+  font-size: 12px;
+  color: #64748B;
+  margin-top: 4px;
+  line-height: 1.4;
+}
+
+
+/* =========================================================================
+   TERMS OF USE, FOOTER & NATURAL MANUAL FORM FILLING STYLES
+   Sole Creator & Copyright: PRAKASH CHAND MEHTA
+   ========================================================================= */
+
+/* Legal Header Button */
+.legal-header-btn {
+  background: #FFF4EC;
+  color: #C2410C;
+  border: 1.5px solid #FFD8B3;
+  border-radius: 20px;
+  padding: 5px 11px;
+  font-size: 0.78rem;
+  font-weight: 800;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+}
+.legal-header-btn:active {
+  transform: scale(0.96);
+}
+
+/* Drawing Canvas & Secondary Controls */
+.form-drawing-canvas {
+  position: absolute;
+  inset: 0;
+  z-index: 15;
+  pointer-events: none;
+  touch-action: none;
+}
+.form-drawing-canvas.active-draw {
+  pointer-events: auto;
+  cursor: crosshair;
+}
+
+.form-drawing-controls {
+  background: #F8FAFC;
+  border: 1.5px solid #CBD5E1;
+  border-radius: 12px;
+  padding: 8px 12px;
+  margin-bottom: 10px;
+  animation: fadeIn 0.2s ease-out;
+}
+.drawing-options-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.ctrl-label {
+  font-size: 0.76rem;
+  font-weight: 800;
+  color: #334155;
+  text-transform: uppercase;
+}
+.ctrl-sep {
+  color: #CBD5E1;
+  font-weight: 300;
+}
+.color-palette {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.ink-btn {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 2px solid white;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.3);
+  cursor: pointer;
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+.ink-btn.active {
+  transform: scale(1.22);
+  border: 2.5px solid #FF671F;
+  box-shadow: 0 2px 8px rgba(255, 103, 31, 0.45);
+}
+.size-group {
+  display: flex;
+  gap: 4px;
+}
+.stroke-btn {
+  background: white;
+  border: 1px solid #CBD5E1;
+  border-radius: 6px;
+  padding: 3px 8px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #334155;
+  cursor: pointer;
+}
+.stroke-btn.active {
+  background: #0A1E5C;
+  color: white;
+  border-color: #0A1E5C;
+}
+.btn-undo-stroke, .btn-clear-drawings {
+  background: white;
+  border: 1px solid #CBD5E1;
+  border-radius: 6px;
+  padding: 3px 9px;
+  font-size: 0.74rem;
+  font-weight: 700;
+  cursor: pointer;
+  margin-left: auto;
+}
+.btn-clear-drawings {
+  color: #DC2626;
+  border-color: #FCA5A5;
+  background: #FEF2F2;
+  margin-left: 0;
+}
+
+/* NATURAL FORM FILLING (Direct Paper & Pen Feel, No Clunky Bounding Box) */
+.annotation-box {
+  position: absolute;
+  display: inline-flex;
+  align-items: flex-end;
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  user-select: none;
+  z-index: 25;
+  cursor: move;
+  transition: all 0.1s ease;
+}
+.annotation-box.active {
+  border-bottom: 2px solid #046A38 !important;
+  background: rgba(4, 106, 56, 0.06) !important;
+}
+
+.annotation-input {
+  border: none !important;
+  outline: none !important;
+  background: transparent !important;
+  color: #0F172A;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+  font-weight: 700;
+  padding: 0 1px !important;
+  margin: 0 !important;
+  line-height: 1.15;
+  min-width: 24px;
+}
+.annotation-input::placeholder {
+  color: rgba(100, 116, 139, 0.5);
+  font-weight: 500;
+  font-style: italic;
+}
+
+/* Micro-Toolbar with 1px Precision Nudge Arrows */
+.annotation-micro-toolbar {
+  position: absolute;
+  bottom: 100%;
+  left: 0;
+  margin-bottom: 4px;
+  background: #0A1E5C;
+  border-radius: 6px;
+  padding: 2px 4px;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  box-shadow: 0 3px 12px rgba(0,0,0,0.35);
+  z-index: 40;
+  white-space: nowrap;
+}
+.micro-btn {
+  background: rgba(255, 255, 255, 0.18);
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 2px 6px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  cursor: pointer;
+  line-height: 1.2;
+}
+.micro-btn:hover, .micro-btn:active {
+  background: rgba(255, 255, 255, 0.38);
+}
+.micro-btn.nudge-btn {
+  padding: 1px 5px;
+  font-size: 0.75rem;
+  color: #86EFAC;
+}
+.micro-btn.font-btn {
+  font-size: 0.68rem;
+  color: #FDE047;
+}
+.micro-btn.del {
+  background: #DC2626;
+  color: white;
+  margin-left: 2px;
+}
+
+/* Notation / Sticky Note Badge */
+.annotation-note-badge {
+  background: #FEF08A;
+  color: #713F12;
+  border: 1px solid #CA8A04;
+  border-radius: 6px;
+  padding: 4px 8px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  max-width: 220px;
+}
+
+/* Footer Styles */
+.app-footer {
+  margin-top: 36px;
+  padding: 0 16px 28px 16px;
+}
+.footer-legal-card {
+  background: #FFFFFF;
+  border: 1.5px solid #FFD8B3;
+  border-radius: 18px;
+  overflow: hidden;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+}
+.footer-tricolor-accent {
+  height: 5px;
+  background: linear-gradient(90deg, #FF671F 0%, #FF671F 33.3%, #FFFFFF 33.3%, #FFFFFF 66.6%, #046A38 66.6%, #046A38 100%);
+  border-bottom: 1px solid #E2E8F0;
+}
+.footer-content {
+  padding: 18px 20px;
+  text-align: center;
+}
+.footer-title {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: var(--navy);
+  margin-bottom: 4px;
+}
+.footer-author {
+  font-size: 0.88rem;
+  color: #1E293B;
+  margin-bottom: 2px;
+}
+.footer-author b {
+  color: #046A38;
+}
+.footer-copyright {
+  font-size: 0.78rem;
+  color: #64748B;
+  font-weight: 600;
+  margin-bottom: 10px;
+}
+.footer-notice {
+  font-size: 0.75rem;
+  color: #475569;
+  line-height: 1.45;
+  background: #F8FAFC;
+  border-radius: 10px;
+  padding: 10px 14px;
+  margin-bottom: 14px;
+  border: 1px solid #E2E8F0;
+}
+.footer-notice b {
+  color: #DC2626;
+}
+.btn-footer-terms {
+  background: #FFF4EC;
+  color: #C2410C;
+  border: 1.5px solid #FFD8B3;
+  border-radius: 20px;
+  padding: 7px 16px;
+  font-size: 0.8rem;
+  font-weight: 800;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+}
+.btn-footer-terms:hover {
+  background: #FFEDD5;
+}
+
+/* Terms Modal Card */
+.terms-modal-card {
+  background: #FFFFFF;
+  width: 95%;
+  max-width: 580px;
+  max-height: 90vh;
+  border-radius: 22px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.45);
+  border: 3px solid #FF671F;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: modalPop 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+.terms-crest-header {
+  background: linear-gradient(135deg, #0A1E5C 0%, #1E3A8A 100%);
+  color: white;
+  padding: 16px 20px;
+  text-align: center;
+  position: relative;
+  border-bottom: 3.5px solid #FF671F;
+}
+.terms-crest-emblem {
+  font-size: 2rem;
+  margin-bottom: 4px;
+}
+.terms-crest-header h3 {
+  font-size: 1.18rem;
+  font-weight: 800;
+  letter-spacing: 0.3px;
+  margin-bottom: 4px;
+}
+.terms-badge-pill {
+  display: inline-block;
+  background: rgba(255,255,255,0.18);
+  font-size: 0.72rem;
+  padding: 3px 12px;
+  border-radius: 12px;
+  font-weight: 700;
+  color: #FDE047;
+}
+
+.terms-author-banner {
+  background: #F0FDF4;
+  border-bottom: 1.5px solid #86EFAC;
+  padding: 10px 16px;
+  text-align: center;
+}
+.author-label {
+  font-size: 0.7rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  color: #166534;
+  letter-spacing: 0.5px;
+}
+.author-name {
+  font-size: 1.2rem;
+  font-weight: 900;
+  color: #046A38;
+  letter-spacing: 0.5px;
+}
+.author-rights {
+  font-size: 0.72rem;
+  color: #475569;
+  font-weight: 600;
+}
+
+.terms-scroll-body {
+  padding: 14px 18px;
+  overflow-y: auto;
+  max-height: 48vh;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  background: #FAFAFA;
+}
+.terms-clause {
+  display: flex;
+  gap: 12px;
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 12px;
+  padding: 10px 14px;
+  font-size: 0.8rem;
+  line-height: 1.45;
+  color: #334155;
+}
+.terms-clause.highlight-violation {
+  background: #FEF2F2;
+  border: 1.5px solid #FCA5A5;
+}
+.clause-num {
+  width: 24px;
+  height: 24px;
+  min-width: 24px;
+  border-radius: 50%;
+  background: #0A1E5C;
+  color: white;
+  font-weight: 800;
+  font-size: 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.clause-num.alert-num {
+  background: #DC2626;
+}
+.clause-body b {
+  display: block;
+  font-size: 0.83rem;
+  color: #0F172A;
+  margin-bottom: 2px;
+}
+.clause-body p {
+  margin: 0;
+}
+
+.terms-acceptance-gate {
+  background: #FFFFFF;
+  border-top: 2px solid #E2E8F0;
+  padding: 14px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.terms-checkbox-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  cursor: pointer;
+}
+.terms-checkbox-row input {
+  width: 20px;
+  height: 20px;
+  min-width: 20px;
+  margin-top: 2px;
+  accent-color: #046A38;
+}
+.terms-checkbox-text {
+  font-size: 0.79rem;
+  color: #1E293B;
+  line-height: 1.4;
+}
+.terms-checkbox-text b {
+  color: #046A38;
+}
+.btn-accept-terms {
+  width: 100%;
+  padding: 12px 18px;
+  font-size: 0.95rem;
+  font-weight: 800;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #046A38 0%, #059669 100%);
+  border: none;
+  color: white;
+  box-shadow: 0 4px 14px rgba(4, 106, 56, 0.35);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all 0.2s;
+}
+.btn-accept-terms:disabled {
+  background: #94A3B8;
+  box-shadow: none;
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+
+/* =========================================================================
+   TAB 7: OCR & MULTI-LANGUAGE TRANSLATION STYLES
+   Sole Creator & Copyright: PRAKASH CHAND MEHTA
+   ========================================================================= */
+.ocr-mode-switcher {
+  display: flex;
+  background: #F1F5F9;
+  border-radius: 12px;
+  padding: 4px;
+  gap: 6px;
+  margin-bottom: 14px;
+}
+.ocr-mode-btn {
+  flex: 1;
+  padding: 9px 12px;
+  border: none;
+  background: transparent;
+  color: #475569;
+  font-weight: 700;
+  font-size: 0.82rem;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.ocr-mode-btn.active {
+  background: white;
+  color: #0A1E5C;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+.language-select-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #FFFFFF;
+  border: 1.5px solid #FFD8B3;
+  border-radius: 14px;
+  padding: 12px 14px;
+  margin-bottom: 14px;
+}
+.lang-field-group {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.lang-field-group label {
+  font-size: 0.75rem;
+  font-weight: 800;
+  color: #0A1E5C;
+  text-transform: uppercase;
+}
+.lang-select {
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1.5px solid #CBD5E1;
+  background: #F8FAFC;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #1E293B;
+  outline: none;
+}
+.lang-select:focus {
+  border-color: #FF671F;
+}
+.lang-arrow {
+  font-size: 1.2rem;
+  font-weight: 900;
+  color: #FF671F;
+  margin-top: 14px;
+}
+
+.ocr-actions-row {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.dual-text-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+@media (max-width: 640px) {
+  .dual-text-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.text-box-col {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.text-box-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.text-box-title {
+  font-size: 0.82rem;
+  font-weight: 800;
+  color: #0A1E5C;
+}
+.text-meta-badge {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #64748B;
+  background: #F1F5F9;
+  padding: 2px 8px;
+  border-radius: 10px;
+}
+.ocr-textarea {
+  width: 100%;
+  height: 180px;
+  border-radius: 10px;
+  border: 1.5px solid #CBD5E1;
+  padding: 10px;
+  font-size: 0.82rem;
+  font-family: inherit;
+  color: #0F172A;
+  resize: vertical;
+  background: #FFFFFF;
+  line-height: 1.45;
+}
+.ocr-textarea:focus {
+  border-color: #046A38;
+  outline: none;
+}
+.btn-text-action {
+  align-self: flex-start;
+  background: #F1F5F9;
+  border: 1px solid #CBD5E1;
+  border-radius: 6px;
+  padding: 4px 10px;
+  font-size: 0.74rem;
+  font-weight: 700;
+  color: #334155;
+  cursor: pointer;
+}
+.btn-text-action:active {
+  background: #E2E8F0;
+}
+
+/* Official Translation Disclaimer Box */
+.translation-disclaimer-box {
+  background: #FFFBEB;
+  border: 1.5px solid #FCD34D;
+  border-radius: 12px;
+  padding: 12px 14px;
+  margin-bottom: 14px;
+  box-shadow: 0 2px 8px rgba(245, 158, 11, 0.08);
+}
+.disclaimer-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+.disclaimer-icon {
+  font-size: 1.1rem;
+}
+.disclaimer-heading {
+  font-size: 0.8rem;
+  font-weight: 800;
+  color: #92400E;
+  letter-spacing: 0.3px;
+}
+.disclaimer-body {
+  font-size: 0.75rem;
+  color: #78350F;
+  line-height: 1.45;
+  margin: 0 0 6px 0;
+}
+.disclaimer-footer {
+  font-size: 0.7rem;
+  color: #92400E;
+  font-weight: 600;
+  border-top: 1px dashed #FDE68A;
+  padding-top: 4px;
+}
+
 </style>
 </head>
 <body>
@@ -1349,14 +2103,9 @@ body {
       <span>Smart PDF Pro</span>
     </div>
     <div class="header-actions">
-      <button id="headerVoiceBtn" class="voice-header-btn" title="Voice Commands">
-        <span class="mic-icon">🎙️</span>
-        <span>Voice</span>
-      </button>
-      <div class="offline-badge">
-        <span>🔒</span>
-        <span>Offline</span>
-      </div>
+      <div class="offline-badge"><span>🔒</span> 100% Offline</div>
+      <button id="headerTermsBtn" class="voice-header-btn" title="Developer IP & License Terms" style="background:#FFF4EC; color:#C2410C; border:1px solid #FFD8B3;"><span>⚖️</span> Legal & IP</button>
+      <button id="headerVoiceBtn" class="voice-header-btn" title="Toggle Voice Commands"><span>🎙️</span> Voice</button>
     </div>
   </header>
 
@@ -1378,6 +2127,8 @@ body {
       <button class="tab-btn" data-tab="tab-sign">Sign Document</button>
       <button class="tab-btn" data-tab="tab-redact">Redact PDF</button>
       <button class="tab-btn" data-tab="tab-merge">Merge PDFs</button>
+      <button class="tab-btn" data-tab="tab-compress">📉 Compress</button>
+      <button class="tab-btn" data-tab="tab-ocr">🌐 OCR & Translate</button>
     </nav>
 
     <!-- TAB 1: FILL ANY PDF FORM -->
@@ -1423,21 +2174,54 @@ body {
         <!-- Floating Form Action Tools Bar -->
         <div class="form-toolbar">
           <div class="tool-chips-group">
-            <button class="form-tool-chip active" data-tool="text" type="button" title="Add Text">
+            <button class="form-tool-chip active" data-tool="text" type="button" title="Type Text directly onto line">
               <span>🔤</span> Text
             </button>
-            <button class="form-tool-chip" data-tool="check" type="button" title="Add Checkmark">
+            <button class="form-tool-chip" data-tool="pen" type="button" title="Write manually with finger or stylus">
+              <span>✏️</span> Pen / Write
+            </button>
+            <button class="form-tool-chip" data-tool="highlight" type="button" title="Highlight text sections">
+              <span>🖍️</span> Highlight
+            </button>
+            <button class="form-tool-chip" data-tool="note" type="button" title="Add sticky notation / remark">
+              <span>📝</span> Note
+            </button>
+            <button class="form-tool-chip" data-tool="check" type="button" title="Add Checkmark in checkbox">
               <span>✔️</span> Check
             </button>
-            <button class="form-tool-chip" data-tool="cross" type="button" title="Add Cross">
+            <button class="form-tool-chip" data-tool="cross" type="button" title="Add Cross mark">
               <span>✖️</span> Cross
             </button>
-            <button class="form-tool-chip" data-tool="date" type="button" title="Add Date">
+            <button class="form-tool-chip" data-tool="date" type="button" title="Add Today's Date">
               <span>📅</span> Date
             </button>
-            <button class="form-tool-chip" data-tool="sign" type="button" title="Add Signature">
+            <button class="form-tool-chip" data-tool="sign" type="button" title="Embed Signature">
               <span>✍️</span> Sign
             </button>
+          </div>
+
+          <!-- Freehand Pen & Highlighter Secondary Controls Bar -->
+          <div id="formDrawingControls" class="form-drawing-controls" style="display:none;">
+            <div class="drawing-options-row">
+              <span class="ctrl-label">Ink Color:</span>
+              <div class="color-palette">
+                <button type="button" class="ink-btn active" data-color="#1E3A8A" style="background:#1E3A8A;" title="Navy Blue Ink"></button>
+                <button type="button" class="ink-btn" data-color="#0F172A" style="background:#0F172A;" title="Black Ink"></button>
+                <button type="button" class="ink-btn" data-color="#DC2626" style="background:#DC2626;" title="Red Ink"></button>
+                <button type="button" class="ink-btn" data-color="#046A38" style="background:#046A38;" title="Green Ink"></button>
+                <button type="button" class="ink-btn" data-color="#EAB308" style="background:#EAB308;" title="Highlighter Yellow"></button>
+                <button type="button" class="ink-btn" data-color="#EA580C" style="background:#EA580C;" title="Highlighter Orange"></button>
+              </div>
+              <span class="ctrl-sep">|</span>
+              <span class="ctrl-label">Size:</span>
+              <div class="size-group">
+                <button type="button" class="stroke-btn active" data-width="1.8">Fine</button>
+                <button type="button" class="stroke-btn" data-width="3.2">Med</button>
+                <button type="button" class="stroke-btn" data-width="5.0">Bold</button>
+              </div>
+              <button type="button" id="btnUndoStroke" class="btn-undo-stroke" title="Undo last drawn stroke">↩️ Undo</button>
+              <button type="button" id="btnClearDrawings" class="btn-clear-drawings" title="Clear page handwriting">🗑️ Clear Ink</button>
+            </div>
           </div>
 
           <!-- Page Switcher -->
@@ -1454,6 +2238,7 @@ body {
         <div class="form-viewport-wrapper" id="formViewportWrapper">
           <div class="form-canvas-container" id="formCanvasContainer">
             <canvas id="formPdfCanvas"></canvas>
+            <canvas id="formDrawingCanvas" class="form-drawing-canvas"></canvas>
             <div id="formAnnotationOverlay" class="form-annotation-overlay"></div>
           </div>
         </div>
@@ -1710,7 +2495,220 @@ body {
 
       <div id="mergeStatus" class="status-box"></div>
     </section>
-  </main>
+    <!-- TAB 6: COMPRESS PDF (MAINTAINING QUALITY & LOOK AND FEEL) -->
+    <section id="tab-compress" class="tool-card">
+      <div class="tool-header">
+        <h2>Compress & Optimize PDF</h2>
+        <p>Reduce file size for WhatsApp, emails, and official portals while preserving crystal-clear text, images, and layout.</p>
+      </div>
+
+      <div class="dropzone" id="compressDropzone">
+        <div class="dropzone-icon">📉</div>
+        <div class="dropzone-text">Tap to select PDF to compress</div>
+        <div class="dropzone-hint">Reduces MBs while preserving visual clarity & layout</div>
+      </div>
+      <input type="file" id="compressFileInput" accept="application/pdf" style="display:none">
+      <div id="compressFilePill" class="selected-file-pill" style="display:none"></div>
+
+      <!-- Compression Options (Visible when file selected) -->
+      <div id="compressSettings" style="display:none; margin-top:16px;">
+        <!-- Live File Size Comparison Bar -->
+        <div class="compress-stats-bar">
+          <div class="compress-stat-item">
+            <span class="compress-stat-label">Original Size</span>
+            <span class="compress-stat-val" id="origFileSize">--</span>
+          </div>
+          <div class="compress-stat-arrow">➔</div>
+          <div class="compress-stat-item">
+            <span class="compress-stat-label">Estimated Output</span>
+            <span class="compress-stat-val highlight" id="estFileSize">--</span>
+          </div>
+        </div>
+
+        <label style="font-weight:700; font-size:13px; color:var(--navy); margin-top:14px; margin-bottom:8px; display:block;">
+          Select Compression Level:
+        </label>
+        <div class="compress-chips-grid">
+          <div class="compress-chip active" data-level="balanced">
+            <div class="chip-top">
+              <span class="chip-title">🎯 Balanced (Recommended)</span>
+              <span class="chip-badge">~65% Smaller</span>
+            </div>
+            <span class="chip-desc">Crystal-clear text & photos. Perfect for official submissions, visas & emails.</span>
+          </div>
+          <div class="compress-chip" data-level="strong">
+            <div class="chip-top">
+              <span class="chip-title">⚡ Maximum Compression</span>
+              <span class="chip-badge">~80% Smaller</span>
+            </div>
+            <span class="chip-desc">Aggressive reduction for strict government portal limits (e.g. under 1 MB or 2 MB).</span>
+          </div>
+          <div class="compress-chip" data-level="light">
+            <div class="chip-top">
+              <span class="chip-title">🌟 High Quality (Light)</span>
+              <span class="chip-badge">~35% Smaller</span>
+            </div>
+            <span class="chip-desc">Lossless object-stream optimization. Retains maximum vector sharpness.</span>
+          </div>
+        </div>
+
+        <button id="compressBtn" class="btn btn-primary" type="button" style="margin-top:18px; width:100%;">
+          <span>📉</span> Compress & Download PDF
+        </button>
+      </div>
+
+      <div id="compressStatus" class="status-box"></div>
+    </section>
+
+  
+    <!-- TAB 7: OCR & TRANSLATE DOCUMENT -->
+    <section id="tab-ocr" class="tool-card">
+      <div class="tool-header">
+        <h2>OCR & Multi-Language Translate</h2>
+        <p>Extract text from scanned forms or image PDFs and translate documents into Arabic, Hindi, Spanish, French, German, Chinese, and more with official legal translation disclaimers.</p>
+      </div>
+
+      <div class="dropzone" id="ocrDropzone">
+        <div class="dropzone-icon">🌐</div>
+        <div class="dropzone-text">Tap to select PDF or Image to OCR & Translate</div>
+        <div class="dropzone-hint">Works with scanned contracts, legal briefs, medical applications & forms</div>
+      </div>
+      <input type="file" id="ocrFileInput" accept="application/pdf,image/*" style="display:none">
+      <div id="ocrFilePill" class="selected-file-pill" style="display:none"></div>
+
+      <!-- OCR & Translation Settings (Visible when document loaded) -->
+      <div id="ocrSettings" style="display:none; margin-top:16px;">
+        <!-- Mode Switcher -->
+        <div class="ocr-mode-switcher">
+          <button type="button" id="btnModeOcr" class="ocr-mode-btn active">🔍 1. Extract Text (OCR)</button>
+          <button type="button" id="btnModeTranslate" class="ocr-mode-btn">🌐 2. Translate Language</button>
+        </div>
+
+        <!-- Language Selection Row -->
+        <div class="language-select-row">
+          <div class="lang-field-group">
+            <label for="ocrSourceLang">Source Language:</label>
+            <select id="ocrSourceLang" class="lang-select">
+              <option value="auto">Auto-Detect Language</option>
+              <option value="en" selected>English (English)</option>
+              <option value="ar">Arabic (العربية)</option>
+              <option value="hi">Hindi (हिन्दी)</option>
+              <option value="es">Spanish (Español)</option>
+              <option value="fr">French (Français)</option>
+              <option value="de">German (Deutsch)</option>
+              <option value="zh">Chinese (简体中文)</option>
+              <option value="ja">Japanese (日本語)</option>
+              <option value="ru">Russian (Русский)</option>
+              <option value="pt">Portuguese (Português)</option>
+              <option value="it">Italian (Italiano)</option>
+              <option value="ur">Urdu (اردو)</option>
+            </select>
+          </div>
+
+          <div class="lang-arrow">➔</div>
+
+          <div class="lang-field-group">
+            <label for="ocrTargetLang">Translate To:</label>
+            <select id="ocrTargetLang" class="lang-select">
+              <option value="ar" selected>Arabic (العربية)</option>
+              <option value="hi">Hindi (हिन्दी)</option>
+              <option value="es">Spanish (Español)</option>
+              <option value="fr">French (Français)</option>
+              <option value="de">German (Deutsch)</option>
+              <option value="zh">Chinese (简体中文)</option>
+              <option value="ja">Japanese (日本語)</option>
+              <option value="ru">Russian (Русский)</option>
+              <option value="pt">Portuguese (Português)</option>
+              <option value="it">Italian (Italiano)</option>
+              <option value="ur">Urdu (اردو)</option>
+              <option value="en">English (English)</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="ocr-actions-row">
+          <button type="button" id="btnRunOcr" class="btn btn-primary" style="flex:1;">
+            <span>🔍</span> Extract Text from Document (OCR)
+          </button>
+          <button type="button" id="btnRunTranslate" class="btn btn-accent" style="flex:1;">
+            <span>🌐</span> Translate Text
+          </button>
+        </div>
+
+        <!-- Results Container -->
+        <div id="ocrResultsContainer" style="display:none; margin-top:18px;">
+          <!-- Dual Text View: Original vs Translated -->
+          <div class="dual-text-grid">
+            <div class="text-box-col">
+              <div class="text-box-header">
+                <span class="text-box-title">📄 Original Extracted Text</span>
+                <span id="origWordCount" class="text-meta-badge">0 words</span>
+              </div>
+              <textarea id="origExtractedText" class="ocr-textarea" placeholder="Extracted text will appear here..."></textarea>
+              <button type="button" id="btnCopyOrigText" class="btn-text-action">📋 Copy Original</button>
+            </div>
+
+            <div class="text-box-col">
+              <div class="text-box-header">
+                <span class="text-box-title">🌐 Translated Version</span>
+                <span id="transWordCount" class="text-meta-badge">0 words</span>
+              </div>
+              <textarea id="translatedText" class="ocr-textarea" placeholder="Translation will appear here..."></textarea>
+              <button type="button" id="btnCopyTransText" class="btn-text-action">📋 Copy Translation</button>
+            </div>
+          </div>
+
+          <!-- Official Legal Translation Disclaimer Banner -->
+          <div class="translation-disclaimer-box">
+            <div class="disclaimer-header">
+              <span class="disclaimer-icon">⚖️</span>
+              <span class="disclaimer-heading">OFFICIAL TRANSLATION REFERENCE NOTATION & DISCLAIMER</span>
+            </div>
+            <p class="disclaimer-body">
+              This document has been translated automatically for reference and informational purposes only. The underlying layout, structure, and factual substance of the original document remain completely unchanged and unmodified. Because automated translation engines interpret grammatical patterns, certain terminology, technical phrasing, or legal nuances may not represent an exact word-for-word translation. <b>The original source document remains the definitive authoritative legal record.</b>
+            </p>
+            <div class="disclaimer-footer">
+              Sole Developer & IP Owner: <b>PRAKASH CHAND MEHTA</b> &bull; &copy; 2026 All Rights Reserved &bull; Strictly Personal Use Only
+            </div>
+          </div>
+
+          <!-- Export Controls -->
+          <div class="ocr-export-row">
+            <button type="button" id="btnExportTranslatedPdf" class="btn btn-primary" style="width:100%; padding:14px; font-weight:800;">
+              <span>📄</span> Export Official Translated PDF (with Embedded Disclaimer)
+            </button>
+            <button type="button" id="btnDownloadTranslatedTxt" class="btn btn-secondary" style="width:100%; margin-top:8px;">
+              <span>📥</span> Download Translated Text (.txt)
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div id="ocrStatus" class="status-box"></div>
+    </section>
+
+</main>
+
+  <!-- Persistent Legal Notice & IP Copyright Footer -->
+  <footer class="app-footer">
+    <div class="footer-legal-card">
+      <div class="footer-tricolor-accent"></div>
+      <div class="footer-content">
+        <div class="footer-title">Smart PDF Professional Suite</div>
+        <div class="footer-author">Designed, Developed & Owned Solely by <b>PRAKASH CHAND MEHTA</b></div>
+        <div class="footer-copyright">&copy; 2026 PRAKASH CHAND MEHTA. All Rights Reserved.</div>
+        <div class="footer-notice">
+          <b>PERSONAL USE ONLY.</b> Commercialization, unauthorized distribution, or fee charging is strictly prohibited and constitutes an unlawful criminal violation. 
+          No features, code, or workflows may be reproduced, modified, or cloned—including via Artificial Intelligence (AI), Large Language Models (LLMs), or renaming.
+        </div>
+        <button type="button" id="footerTermsBtn" class="btn-footer-terms">
+          <span>⚖️</span> View Full Terms of Use & Personal License Agreement
+        </button>
+      </div>
+    </div>
+  </footer>
+
 
   <!-- Floating Voice Assistant Button -->
   <button id="floatingVoiceBtn" class="floating-voice-btn" title="Voice Commands (Tap to Speak)">
@@ -1750,6 +2748,80 @@ body {
   </div>
 
   <!-- INSTALL APP GUIDE MODAL (Both Safari & Chrome on iPhone) -->
+  
+  <!-- MANDATORY TERMS OF USE & INTELLECTUAL PROPERTY ACCEPTANCE MODAL -->
+  <div id="termsModal" class="voice-modal-overlay">
+    <div class="terms-modal-card">
+      <div class="terms-crest-header">
+        <div class="terms-crest-emblem">⚖️</div>
+        <h3>Terms of Use & Intellectual Property Notice</h3>
+        <p class="terms-badge-pill">Smart PDF Professional Suite &bull; Personal License Agreement</p>
+      </div>
+
+      <div class="terms-author-banner">
+        <div class="author-label">Sole Creator, Architect & Copyright Owner</div>
+        <div class="author-name">PRAKASH CHAND MEHTA</div>
+        <div class="author-rights">&copy; 2026 PRAKASH CHAND MEHTA. All Rights Reserved.</div>
+      </div>
+
+      <div class="terms-scroll-body">
+        <div class="terms-clause">
+          <div class="clause-num">1</div>
+          <div class="clause-body">
+            <b>Sole Intellectual Property & Exclusive Ownership:</b>
+            <p>Smart PDF Pro, including its entire architecture, source code, visual UI layout, vector document manipulation engine, offline form filler, high-fidelity compression algorithms, and unique features, is the sole and exclusive intellectual property of <b>PRAKASH CHAND MEHTA</b>. All rights are strictly reserved.</p>
+          </div>
+        </div>
+
+        <div class="terms-clause">
+          <div class="clause-num">2</div>
+          <div class="clause-body">
+            <b>Strictly Personal Non-Commercial Use Only:</b>
+            <p>This software is granted under a single, non-transferable license strictly for <b>personal and private use only</b>. Any commercialization, sale, resale, monetization, sublicensing, deployment as a commercial web service, bundling into third-party commercial packages, or charging of any fee is strictly prohibited.</p>
+          </div>
+        </div>
+
+        <div class="terms-clause highlight-violation">
+          <div class="clause-num alert-num">3</div>
+          <div class="clause-body">
+            <b>Commercialization Constitutes Unlawful Criminal Violation:</b>
+            <p>Any attempt to commercialize, distribute for monetary gain, or exploit this software commercially will be deemed an immediate, willful unlawful violation and criminal breach of copyright and intellectual property laws, subject to statutory damages, injunctions, and legal prosecution to the fullest extent of the law.</p>
+          </div>
+        </div>
+
+        <div class="terms-clause">
+          <div class="clause-num">4</div>
+          <div class="clause-body">
+            <b>Absolute Prohibition of AI Cloning, Reverse Engineering & Renaming:</b>
+            <p>No feature, method, user experience flow, or piece of code may be copied, reverse-engineered, decompiled, translated, obfuscated, or renamed—including through the use of <b>Artificial Intelligence (AI), Large Language Models (LLMs), automated code generators, or clone scripts</b>. Rebranding under a different name or repository is an actionable violation.</p>
+          </div>
+        </div>
+
+        <div class="terms-clause">
+          <div class="clause-num">5</div>
+          <div class="clause-body">
+            <b>100% On-Device Privacy Commitment:</b>
+            <p>In accordance with the developer's core privacy ethos, all document processing, scanning, filling, compression, and signing are conducted 100% locally on your device with zero cloud data transmission.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Mandatory Acceptance Checkbox Gate -->
+      <div class="terms-acceptance-gate">
+        <label class="terms-checkbox-row">
+          <input type="checkbox" id="termsAgreementCheckbox">
+          <span class="terms-checkbox-text">
+            <b>I explicitly accept and agree</b> to all the Terms of Use, Personal Non-Commercial License, and Intellectual Property Rights of sole developer <b>PRAKASH CHAND MEHTA</b>. I confirm this application is for my personal use only.
+          </span>
+        </label>
+
+        <button type="button" id="btnAcceptTerms" class="btn btn-primary btn-accept-terms" disabled>
+          <span>✅</span> I Explicitly Agree & Enter Smart PDF Pro
+        </button>
+      </div>
+    </div>
+  </div>
+
   <div id="installModal" class="voice-modal-overlay">
     <div class="install-modal-card">
       <button id="installCloseBtn" class="voice-close-btn">&times;</button>

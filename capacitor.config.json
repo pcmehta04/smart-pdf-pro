@@ -1,9 +1,19 @@
 {
-  "appId": "com.smartpdfpro.app",
+  "appId": "com.prakashchandmehta.smartpdfpro",
   "appName": "Smart PDF Pro",
-  "webDir": ".",
+  "webDir": "www",
   "bundledWebRuntime": false,
   "server": {
-    "androidScheme": "https"
+    "androidScheme": "https",
+    "iosScheme": "capacitor",
+    "cleartext": false
+  },
+  "plugins": {
+    "SplashScreen": {
+      "launchShowDuration": 1500,
+      "backgroundColor": "#0A1E5C",
+      "showSpinner": false,
+      "androidScaleType": "CENTER_CROP"
+    }
   }
 }
