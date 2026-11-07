@@ -2198,6 +2198,9 @@ body {
             <button class="form-tool-chip" data-tool="sign" type="button" title="Embed Signature">
               <span>✍️</span> Sign
             </button>
+            <button class="form-tool-chip" data-tool="stamp" type="button" title="Affix Company Seal or Stamp">
+              <span>🏛️</span> Stamp / Seal
+            </button>
           </div>
 
           <!-- Freehand Pen & Highlighter Secondary Controls Bar -->
@@ -2231,6 +2234,8 @@ body {
             <button id="formNextPageBtn" class="nav-page-btn" type="button" title="Next Page">▶</button>
             <button id="formZoomOutBtn" class="zoom-btn" type="button" title="Zoom Out">−</button>
             <button id="formZoomInBtn" class="zoom-btn" type="button" title="Zoom In">+</button>
+            <button id="formUndoBtn" class="nav-page-btn" type="button" title="Undo Last Entry" style="color:#0A1E5C; font-weight:700;">↺ Undo</button>
+            <button id="formPreviewModeBtn" class="nav-page-btn" type="button" title="Toggle Clean WYSIWYG Print Preview" style="background:#0A1E5C; color:#FFF; font-weight:700;">👁️ Preview</button>
           </div>
         </div>
 
@@ -2749,13 +2754,158 @@ body {
 
   <!-- INSTALL APP GUIDE MODAL (Both Safari & Chrome on iPhone) -->
   
-  <!-- MANDATORY TERMS OF USE & INTELLECTUAL PROPERTY ACCEPTANCE MODAL -->
+  
+  <!-- COMPANY SEAL & OFFICIAL STAMP MODAL -->
+  <div id="stampPickerModal" class="voice-modal-overlay" style="display:none; align-items:center; justify-content:center; padding:16px;">
+    <div style="background:#FFF; border-radius:18px; max-width:480px; width:100%; max-height:88vh; overflow-y:auto; padding:20px; box-shadow:0 24px 48px rgba(10,30,92,0.35); border:1px solid #CBD5E1;">
+      <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1.5px solid #F1F5F9; padding-bottom:12px; margin-bottom:16px;">
+        <h3 style="margin:0; color:#0A1E5C; font-size:1.15rem; display:flex; align-items:center; gap:8px;">
+          <span>🏛️</span> Official Company Seals & Stamps
+        </h3>
+        <button id="closeStampModalBtn" type="button" style="background:none; border:none; font-size:1.5rem; color:#64748B; cursor:pointer; line-height:1;">&times;</button>
+      </div>
+
+      <!-- Company Name on Seal -->
+      <div class="form-group" style="margin-bottom:14px;">
+        <label style="font-weight:700; font-size:0.84rem; color:#1E293B; display:block; margin-bottom:4px;">Organization / Authority Name on Seal:</label>
+        <input type="text" id="sealCompanyNameInput" class="input-control" value="PRAKASH CHAND MEHTA ENTERPRISES" placeholder="Enter company name for circular seal...">
+      </div>
+
+      <!-- Ink Tone Selection -->
+      <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; background:#F8FAFC; padding:8px 12px; border-radius:10px;">
+        <span style="font-size:0.84rem; font-weight:700; color:#334155;">Stamp Ink Tone:</span>
+        <div style="display:flex; gap:10px;">
+          <button type="button" class="seal-color-btn active" data-color="#1E3A8A" style="width:28px; height:28px; border-radius:50%; background:#1E3A8A; border:2.5px solid #CBD5E1; cursor:pointer;" title="Corporate Navy Blue"></button>
+          <button type="button" class="seal-color-btn" data-color="#DC2626" style="width:28px; height:28px; border-radius:50%; background:#DC2626; border:2.5px solid #CBD5E1; cursor:pointer;" title="Official Red Stamp"></button>
+          <button type="button" class="seal-color-btn" data-color="#046A38" style="width:28px; height:28px; border-radius:50%; background:#046A38; border:2.5px solid #CBD5E1; cursor:pointer;" title="Emerald Approval Green"></button>
+        </div>
+      </div>
+
+      <!-- Presets Grid -->
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:16px;">
+        <!-- Circular Corporate Seal -->
+        <div class="stamp-preset-card" data-preset="corporate-seal" style="border:2px solid #E2E8F0; border-radius:12px; padding:12px; text-align:center; cursor:pointer; transition:all 0.15s; background:#FFF;">
+          <div id="previewCorporateSeal" style="width:110px; height:110px; margin:0 auto 8px; display:flex; align-items:center; justify-content:center;"></div>
+          <div style="font-weight:700; font-size:0.82rem; color:#0A1E5C;">Circular Corporate Seal</div>
+          <div style="font-size:0.72rem; color:#64748B;">Official Embossed Ring</div>
+        </div>
+
+        <!-- Approved Stamp -->
+        <div class="stamp-preset-card" data-preset="approved" style="border:2px solid #E2E8F0; border-radius:12px; padding:12px; text-align:center; cursor:pointer; transition:all 0.15s; background:#FFF;">
+          <div style="height:110px; display:flex; align-items:center; justify-content:center;">
+            <div id="previewApprovedStamp" style="border:3px double #046A38; padding:8px 12px; border-radius:6px; color:#046A38; font-weight:900; font-size:0.92rem; text-transform:uppercase; transform:rotate(-3deg); letter-spacing:1px; line-height:1.2;">
+              ✓ APPROVED<br><span style="font-size:0.65rem; font-weight:700; letter-spacing:0.5px;">OFFICIAL CLEARANCE</span>
+            </div>
+          </div>
+          <div style="font-weight:700; font-size:0.82rem; color:#046A38;">✓ APPROVED Stamp</div>
+          <div style="font-size:0.72rem; color:#64748B;">Formal Verification</div>
+        </div>
+
+        <!-- Confidential Stamp -->
+        <div class="stamp-preset-card" data-preset="confidential" style="border:2px solid #E2E8F0; border-radius:12px; padding:12px; text-align:center; cursor:pointer; transition:all 0.15s; background:#FFF;">
+          <div style="height:110px; display:flex; align-items:center; justify-content:center;">
+            <div style="border:3px solid #DC2626; padding:8px 12px; border-radius:4px; color:#DC2626; font-weight:900; font-size:0.88rem; text-transform:uppercase; transform:rotate(-4deg); letter-spacing:1px; line-height:1.2;">
+              CONFIDENTIAL<br><span style="font-size:0.65rem; font-weight:700; letter-spacing:0.5px;">STRICTLY PRIVILEGED</span>
+            </div>
+          </div>
+          <div style="font-weight:700; font-size:0.82rem; color:#DC2626;">CONFIDENTIAL Stamp</div>
+          <div style="font-size:0.72rem; color:#64748B;">Red Security Banner</div>
+        </div>
+
+        <!-- Received & Verified -->
+        <div class="stamp-preset-card" data-preset="received" style="border:2px solid #E2E8F0; border-radius:12px; padding:12px; text-align:center; cursor:pointer; transition:all 0.15s; background:#FFF;">
+          <div style="height:110px; display:flex; align-items:center; justify-content:center;">
+            <div style="border:2.5px solid #1E3A8A; padding:6px 10px; border-radius:6px; color:#1E3A8A; font-weight:800; font-size:0.82rem; text-transform:uppercase; transform:rotate(-2deg); line-height:1.25;">
+              📥 RECEIVED<br><span id="modalStampDate" style="font-size:0.72rem; font-weight:700; color:#2563EB;"></span><br><span style="font-size:0.62rem; color:#64748B;">OFFICIAL INTAKE</span>
+            </div>
+          </div>
+          <div style="font-weight:700; font-size:0.82rem; color:#1E3A8A;">RECEIVED Intake Stamp</div>
+          <div style="font-size:0.72rem; color:#64748B;">Dated Authority Mark</div>
+        </div>
+      </div>
+
+      <!-- Upload Custom Company Rubber Stamp -->
+      <div style="background:#F1F5F9; border-radius:14px; padding:14px; border:2px dashed #94A3B8; text-align:center;">
+        <div style="font-weight:800; font-size:0.88rem; color:#0F172A; margin-bottom:2px;">
+          📁 Upload Custom Company Rubber Stamp / Seal
+        </div>
+        <div style="font-size:0.75rem; color:#475569; margin-bottom:10px;">
+          ✨ <strong>Smart Transparency Engine:</strong> Erases white paper background automatically so only the rubber ink transfers cleanly onto your PDF!
+        </div>
+        <label class="btn btn-primary" style="cursor:pointer; display:inline-flex; align-items:center; gap:6px; padding:8px 18px; font-size:0.85rem; margin:0 auto;">
+          <span>Select Rubber Stamp Image</span>
+          <input type="file" id="customStampFileInput" accept="image/*" style="display:none">
+        </label>
+      </div>
+    </div>
+  </div>
+
+  <!-- DEDICATED SIGNATURE & SMART INK ISOLATOR MODAL -->
+  <div id="formSigModal" class="voice-modal-overlay" style="display:none; align-items:center; justify-content:center; padding:16px;">
+    <div style="background:#FFF; border-radius:18px; max-width:460px; width:100%; max-height:88vh; overflow-y:auto; padding:20px; box-shadow:0 24px 48px rgba(10,30,92,0.35); border:1px solid #CBD5E1;">
+      <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1.5px solid #F1F5F9; padding-bottom:12px; margin-bottom:14px;">
+        <h3 style="margin:0; color:#0A1E5C; font-size:1.15rem; display:flex; align-items:center; gap:8px;">
+          <span>✍️</span> Signature & Smart Ink Isolator
+        </h3>
+        <button id="closeSigModalBtn" type="button" style="background:none; border:none; font-size:1.5rem; color:#64748B; cursor:pointer; line-height:1;">&times;</button>
+      </div>
+
+      <!-- Option 1: Drawing Pad -->
+      <div style="margin-bottom:14px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+          <label style="font-weight:700; font-size:0.84rem; color:#1E293B;">Option 1: Sign with Touch / Apple Pencil:</label>
+          <div style="display:flex; gap:6px; align-items:center;">
+            <span style="font-size:0.75rem; color:#64748B;">Ink:</span>
+            <button type="button" class="sig-ink-dot active" data-color="#163E82" style="width:20px; height:20px; border-radius:50%; background:#163E82; border:2px solid #CBD5E1; cursor:pointer;" title="Navy Ballpoint"></button>
+            <button type="button" class="sig-ink-dot" data-color="#0F172A" style="width:20px; height:20px; border-radius:50%; background:#0F172A; border:2px solid #CBD5E1; cursor:pointer;" title="Executive Black"></button>
+          </div>
+        </div>
+        <div style="border:2px solid #CBD5E1; border-radius:10px; background:#FAFAFA; position:relative; overflow:hidden;">
+          <canvas id="formSigDrawCanvas" width="420" height="150" style="width:100%; height:150px; display:block; touch-action:none; cursor:crosshair;"></canvas>
+          <div style="position:absolute; bottom:25px; left:20px; right:20px; border-bottom:1px dashed #94A3B8; pointer-events:none; text-align:right; font-size:0.7rem; color:#94A3B8; padding-bottom:2px;">Sign on baseline</div>
+        </div>
+        <div style="display:flex; justify-content:space-between; margin-top:8px;">
+          <button id="clearFormSigPadBtn" type="button" style="background:#F1F5F9; border:1px solid #CBD5E1; border-radius:6px; padding:5px 12px; font-size:0.8rem; font-weight:700; cursor:pointer;">Clear Pad</button>
+          <button id="applyFormDrawnSigBtn" type="button" class="btn btn-primary" style="padding:6px 18px; font-size:0.85rem;">Affix Drawn Signature</button>
+        </div>
+      </div>
+
+      <div style="display:flex; align-items:center; margin:16px 0; gap:10px;">
+        <div style="flex:1; height:1px; background:#E2E8F0;"></div>
+        <span style="font-size:0.78rem; font-weight:700; color:#94A3B8; text-transform:uppercase;">OR</span>
+        <div style="flex:1; height:1px; background:#E2E8F0;"></div>
+      </div>
+
+      <!-- Option 2: Upload Photo of Signature -->
+      <div style="background:#F8FAFC; border:2px dashed #94A3B8; border-radius:14px; padding:14px; text-align:center;">
+        <div style="font-weight:800; font-size:0.88rem; color:#0F172A; margin-bottom:2px;">
+          Option 2: Upload Photo of Real Signature
+        </div>
+        <div style="font-size:0.76rem; color:#475569; margin-bottom:10px;">
+          🌟 <strong>Mac Preview Ink Isolator:</strong> Erases white paper background and extracts crisp transparent pen strokes that overlap form lines naturally!
+        </div>
+        <label class="btn btn-secondary" style="cursor:pointer; display:inline-flex; align-items:center; gap:6px; padding:8px 18px; font-size:0.85rem; margin-bottom:6px;">
+          <span>Select Signature Photo</span>
+          <input type="file" id="formSigPhotoInput" accept="image/*" style="display:none">
+        </label>
+        <div id="formSigPhotoPreviewWrapper" style="display:none; margin-top:10px; padding:10px; background:#FFF; border-radius:8px; border:1px solid #E2E8F0;">
+          <div style="font-size:0.75rem; font-weight:700; color:#046A38; margin-bottom:6px;">✓ Background Removed & Transparent Ink Extracted:</div>
+          <img id="formSigPhotoPreview" style="max-height:75px; max-width:100%; display:inline-block; mix-blend-mode:multiply; background:transparent;">
+          <div style="margin-top:8px;">
+            <button id="applyFormPhotoSigBtn" type="button" class="btn btn-primary" style="padding:6px 18px; font-size:0.85rem;">Affix Transparent Signature</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MANDATORY END USER LICENSE AGREEMENT & LAWFUL USE ACCEPTANCE MODAL -->
   <div id="termsModal" class="voice-modal-overlay">
     <div class="terms-modal-card">
       <div class="terms-crest-header">
         <div class="terms-crest-emblem">⚖️</div>
-        <h3>Terms of Use & Intellectual Property Notice</h3>
-        <p class="terms-badge-pill">Smart PDF Professional Suite &bull; Personal License Agreement</p>
+        <h3>End User License Agreement (EULA) & Lawful Use</h3>
+        <p class="terms-badge-pill">Smart PDF Professional Suite &bull; Personal Non-Commercial License</p>
       </div>
 
       <div class="terms-author-banner">
@@ -2769,14 +2919,14 @@ body {
           <div class="clause-num">1</div>
           <div class="clause-body">
             <b>Sole Intellectual Property & Exclusive Ownership:</b>
-            <p>Smart PDF Pro, including its entire architecture, source code, visual UI layout, vector document manipulation engine, offline form filler, high-fidelity compression algorithms, and unique features, is the sole and exclusive intellectual property of <b>PRAKASH CHAND MEHTA</b>. All rights are strictly reserved.</p>
+            <p>Smart PDF Pro, including its entire architecture, source code, visual UI layout, vector document manipulation engine, offline form filler, OCR routines, multi-language translation pipelines, high-fidelity compression algorithms, and unique features, is the sole and exclusive intellectual property of <b>PRAKASH CHAND MEHTA</b>. All rights are strictly reserved.</p>
           </div>
         </div>
 
         <div class="terms-clause">
           <div class="clause-num">2</div>
           <div class="clause-body">
-            <b>Strictly Personal Non-Commercial Use Only:</b>
+            <b>Strictly Personal Non-Commercial License:</b>
             <p>This software is granted under a single, non-transferable license strictly for <b>personal and private use only</b>. Any commercialization, sale, resale, monetization, sublicensing, deployment as a commercial web service, bundling into third-party commercial packages, or charging of any fee is strictly prohibited.</p>
           </div>
         </div>
@@ -2800,11 +2950,42 @@ body {
         <div class="terms-clause">
           <div class="clause-num">5</div>
           <div class="clause-body">
-            <b>100% On-Device Privacy Commitment:</b>
-            <p>In accordance with the developer's core privacy ethos, all document processing, scanning, filling, compression, and signing are conducted 100% locally on your device with zero cloud data transmission.</p>
+            <b>Lawful & Ethical Document Processing Policy:</b>
+            <p>The user covenants to use this application solely for lawful purposes. You shall not use Smart PDF Pro to forge, falsify, or fraudulently alter official legal, government, tax, or medical records. The user assumes full responsibility for all processed documents.</p>
           </div>
         </div>
+
+        <div class="terms-clause">
+          <div class="clause-num">6</div>
+          <div class="clause-body">
+            <b>100% On-Device Privacy Commitment:</b>
+            <p>In accordance with the developer's core privacy ethos, all document processing, scanning, filling, compression, OCR, and translation are conducted 100% locally on your device with zero cloud data transmission.</p>
+          </div>
+        </div>
+
+        <!-- Quick Links to Complete Legal Documents -->
+        <div style="display:flex; gap:8px; justify-content:center; margin-top:6px;">
+          <a href="eula.html" target="_blank" style="font-size:0.75rem; color:#0A1E5C; font-weight:700; text-decoration:underline;">📄 View Complete EULA Document</a>
+          <span style="color:#CBD5E1;">&bull;</span>
+          <a href="privacy-policy.html" target="_blank" style="font-size:0.75rem; color:#046A38; font-weight:700; text-decoration:underline;">🔒 View Official Privacy Policy</a>
+        </div>
       </div>
+
+      <!-- Mandatory Acceptance Checkbox Gate -->
+      <div class="terms-acceptance-gate">
+        <label class="terms-checkbox-row">
+          <input type="checkbox" id="termsAgreementCheckbox">
+          <span class="terms-checkbox-text">
+            <b>I explicitly accept and agree</b> to the End User License Agreement (EULA), Lawful Use Policy, Personal Non-Commercial License, and Intellectual Property Rights of sole developer <b>PRAKASH CHAND MEHTA</b>.
+          </span>
+        </label>
+
+        <button type="button" id="btnAcceptTerms" class="btn btn-primary btn-accept-terms" disabled>
+          <span>✅</span> I Explicitly Agree & Enter Smart PDF Pro
+        </button>
+      </div>
+    </div>
+  </div>
 
       <!-- Mandatory Acceptance Checkbox Gate -->
       <div class="terms-acceptance-gate">

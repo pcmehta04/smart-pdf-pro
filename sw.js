@@ -1,4 +1,4 @@
-const CACHE_NAME = 'smart-pdf-pro-v8';
+const CACHE_NAME = 'smart-pdf-pro-v11';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',

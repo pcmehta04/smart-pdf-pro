@@ -4,7 +4,7 @@
  * Powered by offline pdf-lib.min.js
  */
 
-const { PDFDocument, rgb, StandardFonts } = PDFLib;
+const { PDFDocument, rgb, degrees, StandardFonts } = PDFLib;
 
 // Application State
 const state = {
@@ -13,7 +13,9 @@ const state = {
   currentPdfName: 'document.pdf',
   detectedFields: [],
   signatureImageBytes: null,
-  isSignatureImage: false
+  isSignatureImage: false,
+  backupPdfBytes: null,
+  currentPdfBase64: null
 };
 
 // DOM Elements
@@ -40,19 +42,231 @@ function readFileAsBuffer(file) {
 
 // Resilient Fresh PDF Buffer Provider (Guaranteed Immune to Web Worker Detachment)
 async function getFreshPdfBytes() {
-  if (state.currentPdfBytes && state.currentPdfBytes.byteLength > 0) {
+  // 1. Try active buffer safely inside try-catch to avoid Safari/WebKit detached buffer crashes
+  if (state.currentPdfBytes) {
     try {
-      return state.currentPdfBytes.slice(0);
+      if (state.currentPdfBytes.byteLength > 0) {
+        const copy = state.currentPdfBytes.slice(0);
+        if (copy.byteLength > 0) {
+          return copy;
+        }
+      }
     } catch (e) {
-      console.warn('Buffer slice error, recovering from file object:', e);
+      console.warn('Current buffer slice error, recovering from backup:', e);
     }
   }
-  if (state.currentPdfFile) {
-    const freshBuf = await readFileAsBuffer(state.currentPdfFile);
-    state.currentPdfBytes = freshBuf.slice(0);
-    return freshBuf.slice(0);
+
+  // 2. Try immutable Uint8Array backup
+  if (state.backupPdfBytes && state.backupPdfBytes.length > 0) {
+    try {
+      const copy = state.backupPdfBytes.slice().buffer;
+      if (copy.byteLength > 0) {
+        state.currentPdfBytes = copy.slice(0);
+        return copy;
+      }
+    } catch (e) {
+      console.warn('Backup buffer slice error:', e);
+    }
   }
+
+  // 3. Try re-reading from File object
+  if (state.currentPdfFile) {
+    try {
+      const freshBuf = await readFileAsBuffer(state.currentPdfFile);
+      state.currentPdfBytes = freshBuf.slice(0);
+      state.backupPdfBytes = new Uint8Array(freshBuf.slice(0));
+      return freshBuf.slice(0);
+    } catch (e) {
+      console.warn('File re-read error, trying Base64 backup:', e);
+    }
+  }
+
+  // 4. Try restoring from Base64 string backup (immune to detachment)
+  if (state.currentPdfBase64) {
+    try {
+      const binary = atob(state.currentPdfBase64);
+      const len = binary.length;
+      const u8 = new Uint8Array(len);
+      for (let i = 0; i < len; i++) {
+        u8[i] = binary.charCodeAt(i);
+      }
+      state.currentPdfBytes = u8.buffer.slice(0);
+      state.backupPdfBytes = u8.slice();
+      return u8.buffer.slice(0);
+    } catch (e) {
+      console.warn('Base64 decode error:', e);
+    }
+  }
+
   throw new Error('PDF file buffer is no longer available. Please tap to select the PDF form again.');
+}
+
+
+// ========================================================
+// WORLD-CLASS STAMP, SEAL & MAC PREVIEW INK ISOLATOR ENGINE
+// ========================================================
+let isFormPreviewMode = false;
+let formActionHistory = [];
+let currentActiveStampColor = '#1E3A8A';
+let currentActiveSigInk = '#163E82';
+let activeDrawnSigDataUrl = null;
+
+// Smart Magic Eraser (Mac Preview Signature Algorithm): Isolates pen strokes & removes paper background
+function extractTransparentInk(imageSource, targetColor = 'navy') {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = () => {
+      const c = document.createElement('canvas');
+      c.width = img.width;
+      c.height = img.height;
+      const ctx = c.getContext('2d');
+      ctx.drawImage(img, 0, 0);
+      const imgData = ctx.getImageData(0, 0, c.width, c.height);
+      const d = imgData.data;
+
+      for (let i = 0; i < d.length; i += 4) {
+        const r = d[i], g = d[i + 1], b = d[i + 2];
+        const lum = 0.299 * r + 0.587 * g + 0.114 * b;
+        if (lum > 218) {
+          d[i + 3] = 0; // 100% transparent paper background
+        } else if (lum > 150) {
+          const alphaRatio = (218 - lum) / 68;
+          d[i + 3] = Math.round(d[i + 3] * Math.pow(alphaRatio, 1.25));
+          if (targetColor === 'navy') {
+            d[i] = 22; d[i + 1] = 62; d[i + 2] = 130;
+          } else if (targetColor === 'black') {
+            d[i] = 15; d[i + 1] = 23; d[i + 2] = 42;
+          }
+        } else {
+          if (targetColor === 'navy') {
+            d[i] = 22; d[i + 1] = 62; d[i + 2] = 130;
+          } else if (targetColor === 'black') {
+            d[i] = 15; d[i + 1] = 23; d[i + 2] = 42;
+          }
+          d[i + 3] = Math.min(255, Math.round(d[i + 3] * 1.15));
+        }
+      }
+      ctx.putImageData(imgData, 0, 0);
+      resolve(c.toDataURL('image/png'));
+    };
+    img.onerror = () => resolve(imageSource);
+    img.src = imageSource;
+  });
+}
+
+// Circular Corporate Seal Generator (Concentric rings, stars, curved text, verified badge)
+function generateCorporateSeal(companyName, dateStr, color = '#1E3A8A') {
+  const company = (companyName || 'PRAKASH CHAND MEHTA ENTERPRISES').toUpperCase();
+  const date = dateStr || (new Date().toLocaleDateString('en-GB'));
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240" width="240" height="240">
+    <defs>
+      <path id="circlePathUpper" d="M 30,120 A 90,90 0 0,1 210,120" fill="none" />
+      <path id="circlePathLower" d="M 210,120 A 90,90 0 0,1 30,120" fill="none" />
+    </defs>
+    <circle cx="120" cy="120" r="114" fill="none" stroke="${color}" stroke-width="4.5" />
+    <circle cx="120" cy="120" r="105" fill="none" stroke="${color}" stroke-width="1.8" />
+    <circle cx="120" cy="120" r="74" fill="none" stroke="${color}" stroke-width="2.2" />
+    <text fill="${color}" font-family="Arial, sans-serif" font-weight="900" font-size="11.5" letter-spacing="1.5">
+      <textPath href="#circlePathUpper" startOffset="50%" text-anchor="middle">${company}</textPath>
+    </text>
+    <text fill="${color}" font-family="Arial, sans-serif" font-weight="800" font-size="10" letter-spacing="2">
+      <textPath href="#circlePathLower" startOffset="50%" text-anchor="middle">★ OFFICIAL CORPORATE SEAL ★</textPath>
+    </text>
+    <polygon points="120,84 123,93 132,93 125,99 128,108 120,102 112,108 115,99 108,93 117,93" fill="${color}" />
+    <text x="120" y="122" text-anchor="middle" fill="${color}" font-family="Arial, sans-serif" font-weight="900" font-size="11" letter-spacing="1">VERIFIED &amp; CERTIFIED</text>
+    <text x="120" y="138" text-anchor="middle" fill="${color}" font-family="Arial, sans-serif" font-weight="700" font-size="10">${date}</text>
+    <text x="120" y="152" text-anchor="middle" fill="${color}" font-family="Arial, sans-serif" font-weight="600" font-size="8.5" letter-spacing="0.5">REG NO. 784-PCM-2026</text>
+  </svg>`;
+
+  return svgToPngDataUrl(svg, 240, 240);
+}
+
+// Approved Stamp Generator
+function generateApprovedStamp(dateStr, color = '#046A38') {
+  const date = dateStr || (new Date().toLocaleDateString('en-GB'));
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 100" width="240" height="100">
+    <rect x="5" y="5" width="230" height="90" rx="8" fill="none" stroke="${color}" stroke-width="3.5" />
+    <rect x="10" y="10" width="220" height="80" rx="6" fill="none" stroke="${color}" stroke-width="1.5" />
+    <text x="120" y="44" text-anchor="middle" fill="${color}" font-family="Arial, sans-serif" font-weight="900" font-size="22" letter-spacing="2">✓ APPROVED</text>
+    <text x="120" y="66" text-anchor="middle" fill="${color}" font-family="Arial, sans-serif" font-weight="800" font-size="12" letter-spacing="1">OFFICIAL CLEARANCE</text>
+    <text x="120" y="82" text-anchor="middle" fill="${color}" font-family="Arial, sans-serif" font-weight="700" font-size="10.5">${date}</text>
+  </svg>`;
+  return svgToPngDataUrl(svg, 240, 100);
+}
+
+// Confidential Stamp Generator
+function generateConfidentialStamp(color = '#DC2626') {
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 90" width="240" height="90">
+    <rect x="5" y="5" width="230" height="80" rx="6" fill="none" stroke="${color}" stroke-width="4" />
+    <text x="120" y="45" text-anchor="middle" fill="${color}" font-family="Arial, sans-serif" font-weight="900" font-size="23" letter-spacing="2.5">CONFIDENTIAL</text>
+    <text x="120" y="68" text-anchor="middle" fill="${color}" font-family="Arial, sans-serif" font-weight="800" font-size="11.5" letter-spacing="1">STRICTLY PRIVILEGED</text>
+  </svg>`;
+  return svgToPngDataUrl(svg, 240, 90);
+}
+
+// Received Stamp Generator
+function generateReceivedStamp(dateStr, color = '#1E3A8A') {
+  const date = dateStr || (new Date().toLocaleDateString('en-GB'));
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 100" width="220" height="100">
+    <rect x="5" y="5" width="210" height="90" rx="8" fill="none" stroke="${color}" stroke-width="3" />
+    <text x="110" y="38" text-anchor="middle" fill="${color}" font-family="Arial, sans-serif" font-weight="900" font-size="18" letter-spacing="1">📥 RECEIVED</text>
+    <text x="110" y="62" text-anchor="middle" fill="${color}" font-family="Arial, sans-serif" font-weight="800" font-size="13">${date}</text>
+    <text x="110" y="80" text-anchor="middle" fill="${color}" font-family="Arial, sans-serif" font-weight="700" font-size="9.5" letter-spacing="0.5">OFFICIAL INTAKE</text>
+  </svg>`;
+  return svgToPngDataUrl(svg, 220, 100);
+}
+
+// Helper: Convert SVG String to High-DPI PNG Data URL
+function svgToPngDataUrl(svgString, width, height) {
+  return new Promise((resolve) => {
+    const img = new Image();
+    const blob = new Blob([svgString], { type: 'image/svg+xml;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    img.onload = () => {
+      const c = document.createElement('canvas');
+      c.width = width * 2;
+      c.height = height * 2;
+      const ctx = c.getContext('2d');
+      ctx.scale(2, 2);
+      ctx.drawImage(img, 0, 0, width, height);
+      URL.revokeObjectURL(url);
+      resolve(c.toDataURL('image/png'));
+    };
+    img.onerror = () => resolve('data:image/svg+xml;base64,' + btoa(svgString));
+    img.src = url;
+  });
+}
+
+// Form Undo History Provider
+function pushFormHistory() {
+  if (!formPageAnnotations[currentFormPageNum]) return;
+  const snapshot = {
+    pageNum: currentFormPageNum,
+    annots: JSON.parse(JSON.stringify(formPageAnnotations[currentFormPageNum])),
+    drawings: JSON.parse(JSON.stringify(formPageDrawings[currentFormPageNum] || []))
+  };
+  formActionHistory.push(snapshot);
+  if (formActionHistory.length > 30) formActionHistory.shift();
+}
+
+function undoLastFormAction() {
+  if (formActionHistory.length === 0) {
+    if (formPageAnnotations[currentFormPageNum] && formPageAnnotations[currentFormPageNum].length > 0) {
+      formPageAnnotations[currentFormPageNum].pop();
+      renderPageAnnotations();
+      updateAnnotationCount();
+    }
+    return;
+  }
+  const lastState = formActionHistory.pop();
+  if (lastState && lastState.pageNum === currentFormPageNum) {
+    formPageAnnotations[currentFormPageNum] = lastState.annots;
+    formPageDrawings[currentFormPageNum] = lastState.drawings;
+    renderPageAnnotations();
+    renderPageDrawings();
+    updateAnnotationCount();
+  }
 }
 
 // Utility: Download Blob on iOS & Android
@@ -166,9 +380,22 @@ if (formDropzone && formFileInput) {
     try {
       const buffer = await readFileAsBuffer(file);
       state.currentPdfBytes = buffer.slice(0);
+      state.backupPdfBytes = new Uint8Array(buffer.slice(0));
+      
+      try {
+        let binary = '';
+        const bytes = new Uint8Array(buffer.slice(0));
+        const chunkSz = 0x8000;
+        for (let i = 0; i < bytes.length; i += chunkSz) {
+          binary += String.fromCharCode.apply(null, bytes.subarray(i, i + chunkSz));
+        }
+        state.currentPdfBase64 = btoa(binary);
+      } catch (b64Err) {
+        console.warn('Base64 caching skipped:', b64Err);
+      }
       
       // 1. Inspect for AcroForm fields
-      const pdfDoc = await PDFDocument.load(buffer.slice(0), { ignoreEncryption: true });
+      const pdfDoc = await PDFDocument.load(new Uint8Array(buffer.slice(0)), { ignoreEncryption: true });
       let fields = [];
       try {
         const form = pdfDoc.getForm();
@@ -193,7 +420,7 @@ if (formDropzone && formFileInput) {
           fieldGroup.className = 'form-group';
           
           const label = document.createElement('label');
-          label.textContent = `${name} (${type.replace('PDF', '').replace('Field', '')})`;
+          label.textContent = name + ' (' + type.replace('PDF', '').replace('Field', '') + ')';
           fieldGroup.appendChild(label);
           
           if (type.includes('CheckBox')) {
@@ -201,7 +428,7 @@ if (formDropzone && formFileInput) {
             checkWrap.className = 'checkbox-row';
             const cb = document.createElement('input');
             cb.type = 'checkbox';
-            cb.id = `field_${name}`;
+            cb.id = 'field_' + name;
             try { cb.checked = field.isChecked(); } catch (err) {}
             const txt = document.createElement('span');
             txt.textContent = 'Check to select / mark yes';
@@ -212,9 +439,9 @@ if (formDropzone && formFileInput) {
             const input = document.createElement('input');
             input.type = 'text';
             input.className = 'input-control';
-            input.id = `field_${name}`;
+            input.id = 'field_' + name;
             try { input.value = field.getText() || ''; } catch (err) {}
-            input.placeholder = `Enter ${name}...`;
+            input.placeholder = 'Enter ' + name + '...';
             fieldGroup.appendChild(input);
           }
           formFieldsContainer.appendChild(fieldGroup);
@@ -228,12 +455,13 @@ if (formDropzone && formFileInput) {
         formModeSwitcher.style.display = 'none';
         formAcroContainer.style.display = 'none';
         formVisualContainer.style.display = 'block';
+        showStatus('formStatus', 'Universal Form Ready: Tap anywhere on lines or table cells to type details, check boxes, or sign.', 'success');
       }
 
       // 2. Load PDF into PDF.js for interactive visual preview & writing
       if (typeof pdfjsLib !== 'undefined') {
         try {
-          const workerData = new Uint8Array(buffer.slice(0));
+          const workerData = new Uint8Array(state.backupPdfBytes.slice().buffer);
           currentPdfJsDoc = await pdfjsLib.getDocument({ data: workerData }).promise;
           totalFormPages = currentPdfJsDoc.numPages;
           currentFormPageNum = 1;
@@ -245,7 +473,11 @@ if (formDropzone && formFileInput) {
             formPageDrawings[p] = [];
           }
           await renderFormPdfPage(currentFormPageNum);
-          showStatus('formStatus', `Document loaded (${totalFormPages} page(s)). Tap to add text/notes or write manually with Pen.`, 'success');
+          if (fields.length === 0) {
+            showStatus('formStatus', 'Universal Form Ready (' + totalFormPages + ' page(s)). Tap anywhere to type details, check boxes, or write with Pen.', 'success');
+          } else {
+            showStatus('formStatus', 'Document loaded (' + totalFormPages + ' page(s)). Tap to add text/notes or write manually with Pen.', 'success');
+          }
         } catch (pdfJsErr) {
           console.error('PDF.js render error:', pdfJsErr);
           showStatus('formStatus', 'Render notice: Could not render interactive preview. You can still use AcroForm mode.', 'error');
@@ -254,7 +486,7 @@ if (formDropzone && formFileInput) {
         showStatus('formStatus', 'PDF preview engine loading...', 'loading');
       }
     } catch (err) {
-      showStatus('formStatus', `Could not inspect PDF: ${err.message}`, 'error');
+      showStatus('formStatus', 'Could not inspect PDF: ' + err.message, 'error');
     }
   });
 }
@@ -325,9 +557,21 @@ if (fillAcroFormBtn) {
 // Tool Selection Handler
 formToolChips.forEach(chip => {
   chip.addEventListener('click', () => {
+    const chosenTool = chip.dataset.tool;
+
+    if (chosenTool === 'stamp') {
+      openStampPickerModal();
+      return;
+    }
+
+    if (chosenTool === 'sign') {
+      openSignaturePadModal();
+      return;
+    }
+
     formToolChips.forEach(c => c.classList.remove('active'));
     chip.classList.add('active');
-    activeFormTool = chip.dataset.tool;
+    activeFormTool = chosenTool;
 
     // Toggle Freehand Pen / Highlighter secondary controls
     if (activeFormTool === 'pen' || activeFormTool === 'highlight') {
@@ -358,6 +602,312 @@ document.querySelectorAll('.stroke-btn').forEach(btn => {
     currentStrokeWidth = parseFloat(btn.dataset.width || '1.8');
   });
 });
+
+// ==========================================
+// STAMP PICKER & SIGNATURE MODAL WIRING
+// ==========================================
+function updateCorporateSealPreview() {
+  const container = document.getElementById('previewCorporateSeal');
+  const compInput = document.getElementById('sealCompanyNameInput');
+  if (!container) return;
+  const companyName = compInput ? compInput.value : 'PRAKASH CHAND MEHTA ENTERPRISES';
+  generateCorporateSeal(companyName, new Date().toLocaleDateString('en-GB'), currentActiveStampColor).then(dataUrl => {
+    container.innerHTML = '<img src="' + dataUrl + '" style="width:100px; height:100px; display:block; margin:auto;">';
+  });
+}
+
+function openStampPickerModal() {
+  const modal = document.getElementById('stampPickerModal');
+  if (!modal) return;
+  modal.style.display = 'flex';
+  const dateBadge = document.getElementById('modalStampDate');
+  if (dateBadge) dateBadge.textContent = new Date().toLocaleDateString('en-GB');
+  updateCorporateSealPreview();
+}
+
+function closeStampPickerModal() {
+  const modal = document.getElementById('stampPickerModal');
+  if (modal) modal.style.display = 'none';
+}
+
+const closeStampBtn = document.getElementById('closeStampModalBtn');
+if (closeStampBtn) closeStampBtn.addEventListener('click', closeStampPickerModal);
+
+const sealCompInput = document.getElementById('sealCompanyNameInput');
+if (sealCompInput) {
+  sealCompInput.addEventListener('input', () => {
+    updateCorporateSealPreview();
+  });
+}
+
+document.querySelectorAll('.seal-color-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.seal-color-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    currentActiveStampColor = btn.dataset.color || '#1E3A8A';
+    updateCorporateSealPreview();
+    const appEl = document.getElementById('previewApprovedStamp');
+    if (appEl) {
+      appEl.style.color = currentActiveStampColor;
+      appEl.style.borderColor = currentActiveStampColor;
+    }
+  });
+});
+
+// Preset Stamp Clicks
+document.querySelectorAll('.stamp-preset-card').forEach(card => {
+  card.addEventListener('click', async () => {
+    const preset = card.dataset.preset;
+    const dateStr = new Date().toLocaleDateString('en-GB');
+    const compName = sealCompInput ? sealCompInput.value : 'PRAKASH CHAND MEHTA ENTERPRISES';
+    let dataUrl = null;
+    let w = 120, h = 120, rot = 0;
+
+    if (preset === 'corporate-seal') {
+      dataUrl = await generateCorporateSeal(compName, dateStr, currentActiveStampColor);
+      w = 120; h = 120; rot = -2;
+    } else if (preset === 'approved') {
+      dataUrl = await generateApprovedStamp(dateStr, currentActiveStampColor === '#1E3A8A' ? '#046A38' : currentActiveStampColor);
+      w = 150; h = 65; rot = -3;
+    } else if (preset === 'confidential') {
+      dataUrl = await generateConfidentialStamp('#DC2626');
+      w = 160; h = 60; rot = -4;
+    } else if (preset === 'received') {
+      dataUrl = await generateReceivedStamp(dateStr, currentActiveStampColor);
+      w = 145; h = 65; rot = -2;
+    }
+
+    if (dataUrl) {
+      pushFormHistory();
+      placeStampAnnotation(dataUrl, w, h, rot);
+      closeStampPickerModal();
+    }
+  });
+});
+
+// Custom Stamp File Upload with Magic Background Eraser
+const customStampInput = document.getElementById('customStampFileInput');
+if (customStampInput) {
+  customStampInput.addEventListener('change', async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    showStatus('formStatus', 'Isolating rubber stamp ink & removing background...', 'loading');
+    const reader = new FileReader();
+    reader.onload = async () => {
+      const transparentDataUrl = await extractTransparentInk(reader.result, 'navy');
+      pushFormHistory();
+      placeStampAnnotation(transparentDataUrl, 130, 130, -2);
+      closeStampPickerModal();
+      showStatus('formStatus', 'Custom stamp affixed with transparent background!', 'success');
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+function placeStampAnnotation(dataUrl, width = 120, height = 120, rotation = 0) {
+  if (!formPageAnnotations[currentFormPageNum]) formPageAnnotations[currentFormPageNum] = [];
+  const cW = (formPdfCanvas && formPdfCanvas.width) ? formPdfCanvas.width : 595;
+  const cH = (formPdfCanvas && formPdfCanvas.height) ? formPdfCanvas.height : 842;
+  const id = Date.now() + Math.random();
+  const posX = Math.max(20, Math.min(cW - width - 20, lastFormTapPos.x || (cW / 2 - width / 2)));
+  const posY = Math.max(20, Math.min(cH - height - 20, lastFormTapPos.y || (cH / 2 - height / 2)));
+
+  formPageAnnotations[currentFormPageNum].push({
+    id,
+    type: 'stamp',
+    dataUrl,
+    width,
+    height,
+    rotation,
+    x: posX,
+    y: posY,
+    canvasW: cW,
+    canvasH: cH
+  });
+  selectedAnnotationId = id;
+  renderPageAnnotations();
+  updateAnnotationCount();
+}
+
+// SIGNATURE MODAL WIRING
+let sigPadCanvas = document.getElementById('formSigDrawCanvas');
+let sigPadCtx = sigPadCanvas ? sigPadCanvas.getContext('2d') : null;
+let isSigningPad = false;
+
+function initSigPad() {
+  if (!sigPadCanvas || !sigPadCtx) return;
+  sigPadCtx.lineWidth = 2.4;
+  sigPadCtx.lineCap = 'round';
+  sigPadCtx.lineJoin = 'round';
+  sigPadCtx.strokeStyle = currentActiveSigInk;
+
+  const getPadPos = (e) => {
+    const rect = sigPadCanvas.getBoundingClientRect();
+    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+    return {
+      x: (clientX - rect.left) * (sigPadCanvas.width / rect.width),
+      y: (clientY - rect.top) * (sigPadCanvas.height / rect.height)
+    };
+  };
+
+  const startPadDraw = (e) => {
+    e.preventDefault();
+    isSigningPad = true;
+    const pos = getPadPos(e);
+    sigPadCtx.beginPath();
+    sigPadCtx.moveTo(pos.x, pos.y);
+  };
+
+  const movePadDraw = (e) => {
+    if (!isSigningPad) return;
+    e.preventDefault();
+    const pos = getPadPos(e);
+    sigPadCtx.lineTo(pos.x, pos.y);
+    sigPadCtx.stroke();
+  };
+
+  const endPadDraw = () => { isSigningPad = false; };
+
+  sigPadCanvas.onmousedown = startPadDraw;
+  window.addEventListener('mousemove', movePadDraw);
+  window.addEventListener('mouseup', endPadDraw);
+
+  sigPadCanvas.addEventListener('touchstart', startPadDraw, { passive: false });
+  window.addEventListener('touchmove', movePadDraw, { passive: false });
+  window.addEventListener('touchend', endPadDraw);
+}
+
+function openSignaturePadModal() {
+  const modal = document.getElementById('formSigModal');
+  if (!modal) return;
+  modal.style.display = 'flex';
+  initSigPad();
+}
+
+function closeSignaturePadModal() {
+  const modal = document.getElementById('formSigModal');
+  if (modal) modal.style.display = 'none';
+}
+
+const closeSigBtn = document.getElementById('closeSigModalBtn');
+if (closeSigBtn) closeSigBtn.addEventListener('click', closeSignaturePadModal);
+
+const clearFormSigBtn = document.getElementById('clearFormSigPadBtn');
+if (clearFormSigBtn && sigPadCanvas && sigPadCtx) {
+  clearFormSigBtn.addEventListener('click', () => {
+    sigPadCtx.clearRect(0, 0, sigPadCanvas.width, sigPadCanvas.height);
+  });
+}
+
+document.querySelectorAll('.sig-ink-dot').forEach(dot => {
+  dot.addEventListener('click', () => {
+    document.querySelectorAll('.sig-ink-dot').forEach(d => d.classList.remove('active'));
+    dot.classList.add('active');
+    currentActiveSigInk = dot.dataset.color || '#163E82';
+    if (sigPadCtx) sigPadCtx.strokeStyle = currentActiveSigInk;
+  });
+});
+
+const applyDrawnSigBtn = document.getElementById('applyFormDrawnSigBtn');
+if (applyDrawnSigBtn) {
+  applyDrawnSigBtn.addEventListener('click', () => {
+    if (!sigPadCanvas || isCanvasBlank(sigPadCanvas)) {
+      alert('Please draw your signature first on the pad.');
+      return;
+    }
+    const dataUrl = sigPadCanvas.toDataURL('image/png');
+    pushFormHistory();
+    placeSignatureAnnotation(dataUrl, 140, 50);
+    closeSignaturePadModal();
+  });
+}
+
+// Upload Real Signature Photo (Mac Preview Smart Ink Isolator)
+const formSigPhotoInput = document.getElementById('formSigPhotoInput');
+let extractedPhotoSigDataUrl = null;
+if (formSigPhotoInput) {
+  formSigPhotoInput.addEventListener('change', async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = async () => {
+      const targetInk = (currentActiveSigInk === '#0F172A') ? 'black' : 'navy';
+      extractedPhotoSigDataUrl = await extractTransparentInk(reader.result, targetInk);
+      const previewImg = document.getElementById('formSigPhotoPreview');
+      const wrapper = document.getElementById('formSigPhotoPreviewWrapper');
+      if (previewImg && wrapper) {
+        previewImg.src = extractedPhotoSigDataUrl;
+        wrapper.style.display = 'block';
+      }
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+const applyPhotoSigBtn = document.getElementById('applyFormPhotoSigBtn');
+if (applyPhotoSigBtn) {
+  applyPhotoSigBtn.addEventListener('click', () => {
+    if (!extractedPhotoSigDataUrl) return;
+    pushFormHistory();
+    placeSignatureAnnotation(extractedPhotoSigDataUrl, 150, 55);
+    closeSignaturePadModal();
+    showStatus('formStatus', 'Authentic signature affixed with natural line overlapping!', 'success');
+  });
+}
+
+function placeSignatureAnnotation(dataUrl, width = 140, height = 50) {
+  if (!formPageAnnotations[currentFormPageNum]) formPageAnnotations[currentFormPageNum] = [];
+  const cW = (formPdfCanvas && formPdfCanvas.width) ? formPdfCanvas.width : 595;
+  const cH = (formPdfCanvas && formPdfCanvas.height) ? formPdfCanvas.height : 842;
+  const id = Date.now() + Math.random();
+  const posX = Math.max(20, Math.min(cW - width - 20, lastFormTapPos.x || (cW / 2 - width / 2)));
+  const posY = Math.max(20, Math.min(cH - height - 20, lastFormTapPos.y || (cH - 160)));
+
+  formPageAnnotations[currentFormPageNum].push({
+    id,
+    type: 'sign',
+    dataUrl,
+    width,
+    height,
+    rotation: 0,
+    x: posX,
+    y: posY,
+    canvasW: cW,
+    canvasH: cH
+  });
+  selectedAnnotationId = id;
+  renderPageAnnotations();
+  updateAnnotationCount();
+}
+
+// Navigation Undo & Preview Toggle
+const formUndoNavBtn = document.getElementById('formUndoBtn');
+if (formUndoNavBtn) {
+  formUndoNavBtn.addEventListener('click', () => {
+    undoLastFormAction();
+  });
+}
+
+const formPreviewNavBtn = document.getElementById('formPreviewModeBtn');
+if (formPreviewNavBtn) {
+  formPreviewNavBtn.addEventListener('click', () => {
+    isFormPreviewMode = !isFormPreviewMode;
+    if (formAnnotationOverlay) {
+      if (isFormPreviewMode) {
+        formAnnotationOverlay.classList.add('preview-mode');
+        selectedAnnotationId = null;
+        formPreviewNavBtn.innerHTML = '✏️ Edit';
+        formPreviewNavBtn.style.background = '#046A38';
+      } else {
+        formAnnotationOverlay.classList.remove('preview-mode');
+        formPreviewNavBtn.innerHTML = '👁️ Preview';
+        formPreviewNavBtn.style.background = '#0A1E5C';
+      }
+      renderPageAnnotations();
+    }
+  });
+}
 
 if (btnUndoStroke) {
   btnUndoStroke.addEventListener('click', () => {
@@ -595,6 +1145,9 @@ function addAnnotationAt(x, y, tool) {
     formPageAnnotations[currentFormPageNum] = [];
   }
   
+  lastFormTapPos = { x, y };
+  pushFormHistory();
+
   const id = Date.now() + Math.random();
   const cW = (formPdfCanvas && formPdfCanvas.width) ? formPdfCanvas.width : 595;
   const cH = (formPdfCanvas && formPdfCanvas.height) ? formPdfCanvas.height : 842;
@@ -605,12 +1158,14 @@ function addAnnotationAt(x, y, tool) {
       id,
       type: 'text',
       text: '',
-      fontSize: 13,
+      fontSize: 12.5,
       fontFamily: 'sans', // sans, serif, mono, script
-      x: Math.max(5, x - 6),
-      y: Math.max(5, y - 10),
-      width: 140,
-      height: 20,
+      color: '#1E3A8A',    // default official navy ink
+      isEditing: true,
+      x: Math.max(5, x - 4),
+      y: Math.max(5, y - 8),
+      width: 120,
+      height: 22,
       canvasW: cW,
       canvasH: cH
     };
@@ -662,31 +1217,14 @@ function addAnnotationAt(x, y, tool) {
       id,
       type: 'text',
       text: dStr,
-      fontSize: 13,
+      fontSize: 12.5,
       fontFamily: 'sans',
-      x: Math.max(5, x - 6),
-      y: Math.max(5, y - 10),
+      color: '#1E3A8A',
+      isEditing: false,
+      x: Math.max(5, x - 4),
+      y: Math.max(5, y - 8),
       width: 95,
-      height: 20,
-      canvasW: cW,
-      canvasH: cH
-    };
-  } else if (tool === 'sign') {
-    const sigCanvas = document.getElementById('signatureCanvas');
-    let sigData = null;
-    if (sigCanvas && !isCanvasBlank(sigCanvas)) {
-      sigData = sigCanvas.toDataURL('image/png');
-    }
-    newAnnot = {
-      id,
-      type: 'sign',
-      dataUrl: sigData,
-      text: '✍️ Signature',
-      fontSize: 14,
-      x: Math.max(5, x - 10),
-      y: Math.max(5, y - 10),
-      width: 120,
-      height: 38,
+      height: 22,
       canvasW: cW,
       canvasH: cH
     };
@@ -700,7 +1238,28 @@ function addAnnotationAt(x, y, tool) {
   }
 }
 
-// Render Annotations onto Overlay with Precision 1px Nudge Toolbar
+// Dynamic auto-expansion so text never clips or scrolls out of view
+function fitInputWidth(input, box, annot) {
+  if (!input || !box) return;
+  const span = document.createElement('span');
+  span.style.font = window.getComputedStyle(input).font;
+  span.style.fontSize = (annot.fontSize || 12.5) + 'px';
+  span.style.fontWeight = '700';
+  span.style.visibility = 'hidden';
+  span.style.position = 'absolute';
+  span.style.whiteSpace = 'pre';
+  span.textContent = input.value || input.placeholder || 'Type here...';
+  document.body.appendChild(span);
+  const textW = span.getBoundingClientRect().width;
+  document.body.removeChild(span);
+  
+  const w = Math.max(45, Math.ceil(textW + 12));
+  input.style.width = w + 'px';
+  box.style.width = w + 'px';
+  annot.width = w;
+}
+
+// Render Annotations onto Overlay with Precision 1px Nudge Toolbar & Live WYSIWYG
 function renderPageAnnotations() {
   if (!formAnnotationOverlay) return;
   formAnnotationOverlay.innerHTML = '';
@@ -708,37 +1267,123 @@ function renderPageAnnotations() {
   
   list.forEach(annot => {
     const box = document.createElement('div');
-    box.className = 'annotation-box' + (selectedAnnotationId === annot.id ? ' active' : '');
+    const isSelected = (selectedAnnotationId === annot.id) && !isFormPreviewMode;
+    box.className = 'annotation-box' + (isSelected ? ' active' : '');
     box.style.left = annot.x + 'px';
     box.style.top = annot.y + 'px';
     box.dataset.id = annot.id;
     
     // Attach Micro Toolbar for Active Item
-    if (selectedAnnotationId === annot.id) {
+    if (isSelected) {
       const tb = document.createElement('div');
       tb.className = 'annotation-micro-toolbar';
       
-      // Font size -
-      const minusBtn = document.createElement('button');
-      minusBtn.className = 'micro-btn';
-      minusBtn.textContent = 'A-';
-      minusBtn.title = 'Smaller text';
-      minusBtn.onclick = (e) => {
-        e.stopPropagation();
-        annot.fontSize = Math.max(8, annot.fontSize - 1);
-        renderPageAnnotations();
-      };
-      
-      // Font size +
-      const plusBtn = document.createElement('button');
-      plusBtn.className = 'micro-btn';
-      plusBtn.textContent = 'A+';
-      plusBtn.title = 'Larger text';
-      plusBtn.onclick = (e) => {
-        e.stopPropagation();
-        annot.fontSize = Math.min(36, annot.fontSize + 1);
-        renderPageAnnotations();
-      };
+      if (annot.type === 'text') {
+        // Font size -
+        const minusBtn = document.createElement('button');
+        minusBtn.className = 'micro-btn';
+        minusBtn.textContent = 'A-';
+        minusBtn.title = 'Smaller text';
+        minusBtn.onclick = (e) => {
+          e.stopPropagation();
+          annot.fontSize = Math.max(10, annot.fontSize - 1);
+          renderPageAnnotations();
+        };
+        
+        // Font size +
+        const plusBtn = document.createElement('button');
+        plusBtn.className = 'micro-btn';
+        plusBtn.textContent = 'A+';
+        plusBtn.title = 'Larger text';
+        plusBtn.onclick = (e) => {
+          e.stopPropagation();
+          annot.fontSize = Math.min(32, annot.fontSize + 1);
+          renderPageAnnotations();
+        };
+
+        // Font Style Switcher (SANS / SERIF / MONO / SCRIPT)
+        const fontBtn = document.createElement('button');
+        fontBtn.className = 'micro-btn font-btn';
+        const styles = ['sans', 'serif', 'mono', 'script'];
+        fontBtn.textContent = (annot.fontFamily || 'sans').toUpperCase();
+        fontBtn.title = 'Switch Font Style';
+        fontBtn.onclick = (e) => {
+          e.stopPropagation();
+          const curIdx = styles.indexOf(annot.fontFamily || 'sans');
+          annot.fontFamily = styles[(curIdx + 1) % styles.length];
+          renderPageAnnotations();
+        };
+
+        // Ink Color Switcher (Navy / Black / Red / Green)
+        const colorBtn = document.createElement('button');
+        colorBtn.className = 'micro-btn color-btn';
+        const colorLabels = { '#1E3A8A': 'NAVY', '#0F172A': 'BLACK', '#DC2626': 'RED', '#046A38': 'GREEN' };
+        const colorsList = ['#1E3A8A', '#0F172A', '#DC2626', '#046A38'];
+        colorBtn.textContent = colorLabels[annot.color || '#1E3A8A'] || 'INK';
+        colorBtn.title = 'Switch Ink Color';
+        colorBtn.onclick = (e) => {
+          e.stopPropagation();
+          const cIdx = colorsList.indexOf(annot.color || '#1E3A8A');
+          annot.color = colorsList[(cIdx + 1) % colorsList.length];
+          renderPageAnnotations();
+        };
+
+        // Direct In-Place Edit Button
+        const editBtn = document.createElement('button');
+        editBtn.className = 'micro-btn edit-btn';
+        editBtn.textContent = '✎';
+        editBtn.title = 'Edit Text';
+        editBtn.onclick = (e) => {
+          e.stopPropagation();
+          annot.isEditing = true;
+          renderPageAnnotations();
+        };
+
+        tb.appendChild(minusBtn);
+        tb.appendChild(plusBtn);
+        tb.appendChild(fontBtn);
+        tb.appendChild(colorBtn);
+        tb.appendChild(editBtn);
+      } else if (annot.type === 'stamp' || annot.type === 'sign') {
+        // Size -
+        const minusBtn = document.createElement('button');
+        minusBtn.className = 'micro-btn';
+        minusBtn.textContent = 'S-';
+        minusBtn.title = 'Scale Down';
+        minusBtn.onclick = (e) => {
+          e.stopPropagation();
+          annot.width = Math.max(40, (annot.width || 120) * 0.9);
+          annot.height = Math.max(25, (annot.height || 50) * 0.9);
+          renderPageAnnotations();
+        };
+
+        // Size +
+        const plusBtn = document.createElement('button');
+        plusBtn.className = 'micro-btn';
+        plusBtn.textContent = 'S+';
+        plusBtn.title = 'Scale Up';
+        plusBtn.onclick = (e) => {
+          e.stopPropagation();
+          annot.width = Math.min(350, (annot.width || 120) * 1.1);
+          annot.height = Math.min(300, (annot.height || 50) * 1.1);
+          renderPageAnnotations();
+        };
+
+        // Rotate +15 deg
+        const rotBtn = document.createElement('button');
+        rotBtn.className = 'micro-btn';
+        rotBtn.innerHTML = '&#8635;';
+        rotBtn.title = 'Rotate 15 degrees';
+        rotBtn.onclick = (e) => {
+          e.stopPropagation();
+          annot.rotation = ((annot.rotation || 0) + 15) % 360;
+          renderPageAnnotations();
+        };
+
+        tb.appendChild(minusBtn);
+        tb.appendChild(plusBtn);
+        tb.appendChild(rotBtn);
+      }
       
       // 1-Pixel Precision Nudge Buttons
       const nudgeUpBtn = document.createElement('button');
@@ -781,20 +1426,6 @@ function renderPageAnnotations() {
         box.style.left = annot.x + 'px';
       };
 
-      // Font Family Switcher (Sans / Serif / Typewriter)
-      const fontBtn = document.createElement('button');
-      fontBtn.className = 'micro-btn font-btn';
-      fontBtn.textContent = annot.fontFamily ? annot.fontFamily.toUpperCase() : 'SANS';
-      fontBtn.title = 'Switch Font Style';
-      fontBtn.onclick = (e) => {
-        e.stopPropagation();
-        const fonts = ['sans', 'serif', 'mono'];
-        const curIdx = fonts.indexOf(annot.fontFamily || 'sans');
-        annot.fontFamily = fonts[(curIdx + 1) % fonts.length];
-        fontBtn.textContent = annot.fontFamily.toUpperCase();
-        renderPageAnnotations();
-      };
-      
       // Delete Button
       const delBtn = document.createElement('button');
       delBtn.className = 'micro-btn del';
@@ -802,50 +1433,110 @@ function renderPageAnnotations() {
       delBtn.title = 'Delete item';
       delBtn.onclick = (e) => {
         e.stopPropagation();
+        pushFormHistory();
         formPageAnnotations[currentFormPageNum] = formPageAnnotations[currentFormPageNum].filter(a => a.id !== annot.id);
         selectedAnnotationId = null;
         renderPageAnnotations();
         updateAnnotationCount();
       };
       
-      tb.appendChild(minusBtn);
-      tb.appendChild(plusBtn);
       tb.appendChild(nudgeUpBtn);
       tb.appendChild(nudgeDownBtn);
       tb.appendChild(nudgeLeftBtn);
       tb.appendChild(nudgeRightBtn);
-      tb.appendChild(fontBtn);
       tb.appendChild(delBtn);
       box.appendChild(tb);
     }
     
+    // Annotation Body Rendering
     if (annot.type === 'text') {
-      const input = document.createElement('input');
-      input.type = 'text';
-      input.className = 'annotation-input';
-      input.value = annot.text;
-      input.placeholder = 'Type here...';
-      input.style.fontSize = annot.fontSize + 'px';
-      if (annot.fontFamily === 'serif') {
-        input.style.fontFamily = '"Times New Roman", Times, serif';
-      } else if (annot.fontFamily === 'mono') {
-        input.style.fontFamily = '"Courier New", Courier, monospace';
-      } else {
-        input.style.fontFamily = '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif';
-      }
-      
-      input.oninput = (e) => {
-        annot.text = e.target.value;
+      const getFontFamily = (family) => {
+        if (family === 'serif') return '"Times New Roman", Times, serif';
+        if (family === 'mono') return '"Courier New", Courier, monospace';
+        if (family === 'script') return '"Brush Script MT", "Caveat", "Dancing Script", cursive';
+        return '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif';
       };
-      input.onfocus = () => {
-        selectedAnnotationId = annot.id;
-        box.classList.add('active');
-      };
-      box.appendChild(input);
-      
-      if (selectedAnnotationId === annot.id && !annot.text) {
+
+      if (annot.isEditing && !isFormPreviewMode) {
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.className = 'annotation-input';
+        input.value = annot.text || '';
+        input.placeholder = 'Type here...';
+        input.style.fontSize = (annot.fontSize || 12.5) + 'px';
+        input.style.fontFamily = getFontFamily(annot.fontFamily);
+        input.style.color = annot.color || '#1E3A8A';
+        
+        input.oninput = (e) => {
+          annot.text = e.target.value;
+          fitInputWidth(input, box, annot);
+        };
+        input.onblur = () => {
+          annot.isEditing = false;
+          renderPageAnnotations();
+        };
+        input.onkeydown = (e) => {
+          if (e.key === 'Enter') {
+            input.blur();
+          }
+        };
+        box.appendChild(input);
+        fitInputWidth(input, box, annot);
+        
         setTimeout(() => input.focus(), 60);
+      } else {
+        // Pure WYSIWYG Rendered Text on Paper Look
+        const rendered = document.createElement('div');
+        rendered.className = 'annotation-rendered-text';
+        rendered.textContent = annot.text || (isSelected ? 'Type here...' : '');
+        rendered.style.fontSize = (annot.fontSize || 12.5) + 'px';
+        rendered.style.fontFamily = getFontFamily(annot.fontFamily);
+        rendered.style.color = annot.color || '#1E3A8A';
+        
+        rendered.onclick = (e) => {
+          e.stopPropagation();
+          if (isFormPreviewMode) return;
+          if (selectedAnnotationId === annot.id) {
+            annot.isEditing = true;
+          } else {
+            selectedAnnotationId = annot.id;
+          }
+          renderPageAnnotations();
+        };
+        box.appendChild(rendered);
       }
+    } else if (annot.type === 'stamp' && annot.dataUrl) {
+      const img = document.createElement('img');
+      img.src = annot.dataUrl;
+      img.className = 'annotation-stamp-img';
+      img.style.width = (annot.width || 120) + 'px';
+      img.style.height = (annot.height || 120) + 'px';
+      if (annot.rotation) {
+        img.style.transform = 'rotate(' + annot.rotation + 'deg)';
+      }
+      box.appendChild(img);
+      box.onclick = (e) => {
+        e.stopPropagation();
+        if (isFormPreviewMode) return;
+        selectedAnnotationId = annot.id;
+        renderPageAnnotations();
+      };
+    } else if (annot.type === 'sign' && annot.dataUrl) {
+      const img = document.createElement('img');
+      img.src = annot.dataUrl;
+      img.className = 'annotation-sig-img';
+      img.style.width = (annot.width || 140) + 'px';
+      img.style.height = (annot.height || 50) + 'px';
+      if (annot.rotation) {
+        img.style.transform = 'rotate(' + annot.rotation + 'deg)';
+      }
+      box.appendChild(img);
+      box.onclick = (e) => {
+        e.stopPropagation();
+        if (isFormPreviewMode) return;
+        selectedAnnotationId = annot.id;
+        renderPageAnnotations();
+      };
     } else if (annot.type === 'note') {
       const badge = document.createElement('div');
       badge.className = 'annotation-note-badge';
@@ -864,7 +1555,7 @@ function renderPageAnnotations() {
         selectedAnnotationId = annot.id;
         box.classList.add('active');
       };
-      badge.innerHTML = '<span>📝</span>';
+      badge.innerHTML = '<span>📌</span>';
       badge.appendChild(noteInput);
       box.appendChild(badge);
     } else if (annot.type === 'check') {
@@ -873,28 +1564,29 @@ function renderPageAnnotations() {
       glyph.textContent = '✓';
       glyph.style.fontSize = annot.fontSize + 'px';
       box.appendChild(glyph);
+      box.onclick = (e) => {
+        e.stopPropagation();
+        if (isFormPreviewMode) return;
+        selectedAnnotationId = annot.id;
+        renderPageAnnotations();
+      };
     } else if (annot.type === 'cross') {
       const glyph = document.createElement('span');
       glyph.className = 'annotation-glyph cross';
       glyph.textContent = '✗';
       glyph.style.fontSize = annot.fontSize + 'px';
       box.appendChild(glyph);
-    } else if (annot.type === 'sign') {
-      if (annot.dataUrl) {
-        const img = document.createElement('img');
-        img.src = annot.dataUrl;
-        img.className = 'annotation-sig-img';
-        box.appendChild(img);
-      } else {
-        const span = document.createElement('span');
-        span.className = 'annotation-input';
-        span.textContent = '✍️ Signed';
-        span.style.fontSize = annot.fontSize + 'px';
-        box.appendChild(span);
-      }
+      box.onclick = (e) => {
+        e.stopPropagation();
+        if (isFormPreviewMode) return;
+        selectedAnnotationId = annot.id;
+        renderPageAnnotations();
+      };
     }
     
-    setupAnnotationDrag(box, annot);
+    if (!isFormPreviewMode) {
+      setupAnnotationDrag(box, annot);
+    }
     formAnnotationOverlay.appendChild(box);
   });
 }
@@ -902,64 +1594,64 @@ function renderPageAnnotations() {
 // Drag & Drop Annotation Handler
 function setupAnnotationDrag(box, annot) {
   let isDragging = false;
-  let startX, startY;
-  let origX, origY;
-  
-  const startDrag = (e) => {
-    if (e.target.classList.contains('micro-btn')) return;
-    if (e.target.tagName === 'INPUT' && document.activeElement === e.target) return;
+  let startX = 0, startY = 0;
+  let initAnnotX = 0, initAnnotY = 0;
+
+  const onPointerDown = (e) => {
+    if (e.target.closest('.annotation-micro-toolbar') || e.target.tagName === 'INPUT') return;
     isDragging = true;
     selectedAnnotationId = annot.id;
+    
     const clientX = e.touches ? e.touches[0].clientX : e.clientX;
     const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+    
     startX = clientX;
     startY = clientY;
-    origX = annot.x;
-    origY = annot.y;
+    initAnnotX = annot.x;
+    initAnnotY = annot.y;
+    
+    document.querySelectorAll('.annotation-box').forEach(b => b.classList.remove('active'));
     box.classList.add('active');
+    
+    window.addEventListener('mousemove', onPointerMove);
+    window.addEventListener('mouseup', onPointerUp);
+    window.addEventListener('touchmove', onPointerMove, { passive: false });
+    window.addEventListener('touchend', onPointerUp);
   };
-  
-  const onDrag = (e) => {
+
+  const onPointerMove = (e) => {
     if (!isDragging) return;
+    if (e.cancelable) e.preventDefault();
+    
     const clientX = e.touches ? e.touches[0].clientX : e.clientX;
     const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+    
     const dx = clientX - startX;
     const dy = clientY - startY;
     
-    annot.x = Math.max(0, origX + dx);
-    annot.y = Math.max(0, origY + dy);
+    annot.x = Math.max(0, initAnnotX + dx);
+    annot.y = Math.max(0, initAnnotY + dy);
+    
     box.style.left = annot.x + 'px';
     box.style.top = annot.y + 'px';
   };
-  
-  const endDrag = () => {
+
+  const onPointerUp = () => {
     if (isDragging) {
       isDragging = false;
+      renderPageAnnotations();
     }
+    window.removeEventListener('mousemove', onPointerMove);
+    window.removeEventListener('mouseup', onPointerUp);
+    window.removeEventListener('touchmove', onPointerMove);
+    window.removeEventListener('touchend', onPointerUp);
   };
-  
-  box.addEventListener('mousedown', startDrag);
-  window.addEventListener('mousemove', onDrag);
-  window.addEventListener('mouseup', endDrag);
-  
-  box.addEventListener('touchstart', startDrag, { passive: true });
-  window.addEventListener('touchmove', onDrag, { passive: true });
-  window.addEventListener('touchend', endDrag);
+
+  box.addEventListener('mousedown', onPointerDown);
+  box.addEventListener('touchstart', onPointerDown, { passive: false });
 }
 
-// Helper: Convert Hex Color to RGB components
-function hexToRgb(hex) {
-  let c = hex.replace('#', '');
-  if (c.length === 3) c = c.split('').map(x => x + x).join('');
-  const num = parseInt(c, 16);
-  return {
-    r: ((num >> 16) & 255) / 255,
-    g: ((num >> 8) & 255) / 255,
-    b: (num & 255) / 255
-  };
-}
-
-// Save & Export Completed Visual Form with Vector Lines & Drawings
+// Save & Export Completed Visual Form with Vector Lines, Stamps, Transparent Signatures & Drawings
 async function saveVisualForm() {
   // 1. Sync active DOM inputs
   if (document.querySelectorAll) {
@@ -975,14 +1667,16 @@ async function saveVisualForm() {
     });
   }
 
-  showStatus('formStatus', 'Embedding details, handwritings & burning entries into PDF...', 'loading');
+  showStatus('formStatus', 'Embedding details, corporate seals, genuine signatures & burning into PDF...', 'loading');
   try {
     const freshBytes = await getFreshPdfBytes();
-    const pdfDoc = await PDFDocument.load(freshBytes, { ignoreEncryption: true });
+    const safeData = new Uint8Array(freshBytes);
+    const pdfDoc = await PDFDocument.load(safeData, { ignoreEncryption: true });
     
     const fontHelvetica = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
     const fontTimes = await pdfDoc.embedFont(StandardFonts.TimesRomanBold);
     const fontCourier = await pdfDoc.embedFont(StandardFonts.CourierBold);
+    const fontScript = await pdfDoc.embedFont(StandardFonts.TimesRomanItalic);
     const pages = pdfDoc.getPages();
     
     for (let pNum = 1; pNum <= pages.length; pNum++) {
@@ -999,16 +1693,23 @@ async function saveVisualForm() {
       const scaleX = pdfW / cW;
       const scaleY = pdfH / cH;
       
-      // A. Burn Annotations (Text, Checkmarks, Crosses, Notes, Signatures)
+      // A. Burn Annotations (Text, Seals, Stamps, Signatures, Notes, Marks)
       for (const a of annots) {
         const x = a.x * scaleX;
-        const boxH = (a.height || 20) * scaleY;
-        const y = pdfH - (a.y * scaleY) - boxH;
-        const textSize = Math.max(8, a.fontSize * scaleX);
+        const boxH = (a.height || 22) * scaleY;
+        const textSize = Math.max(9, a.fontSize * scaleX);
+        const baselineOffset = Math.max(2, (boxH - textSize) * 0.4 + 2);
+        const y = pdfH - (a.y * scaleY) - boxH + baselineOffset;
         
         let chosenFont = fontHelvetica;
         if (a.fontFamily === 'serif') chosenFont = fontTimes;
         else if (a.fontFamily === 'mono') chosenFont = fontCourier;
+        else if (a.fontFamily === 'script') chosenFont = fontScript;
+
+        let fontColor = rgb(0.12, 0.23, 0.54); // default navy
+        if (a.color === '#0F172A') fontColor = rgb(0.06, 0.09, 0.16); // black
+        else if (a.color === '#DC2626') fontColor = rgb(0.86, 0.15, 0.15); // red
+        else if (a.color === '#046A38') fontColor = rgb(0.02, 0.42, 0.22); // green
         
         if (a.type === 'text') {
           if (a.text) {
@@ -1016,17 +1717,47 @@ async function saveVisualForm() {
               const code = ch.charCodeAt(0);
               return ((code >= 32 && code <= 126) || (code >= 160 && code <= 255)) ? ch : ' ';
             }).join('');
+            
+            // Auto-fit text width so long IDs are never truncated
+            let finalFontSize = textSize;
+            const textWidth = chosenFont.widthOfTextAtSize(safeText, finalFontSize);
+            const maxAvailableW = Math.min((a.width ? a.width * scaleX : 320), pdfW - x - 10);
+            if (textWidth > maxAvailableW && maxAvailableW > 25) {
+              const ratio = maxAvailableW / textWidth;
+              if (ratio < 0.98) {
+                finalFontSize = Math.max(8.5, finalFontSize * ratio);
+              }
+            }
+
             try {
               page.drawText(safeText, {
-                x: x + 1,
-                y: y + 2,
-                size: textSize,
+                x: x,
+                y: y,
+                size: finalFontSize,
                 font: chosenFont,
-                color: rgb(0.06, 0.09, 0.16)
+                color: fontColor
               });
             } catch (err) {
               console.warn('Text render fallback:', err);
             }
+          }
+        } else if ((a.type === 'stamp' || a.type === 'sign') && a.dataUrl) {
+          try {
+            const pngBytes = await fetch(a.dataUrl).then(res => res.arrayBuffer());
+            const pngImage = await pdfDoc.embedPng(pngBytes);
+            const w = (a.width || 120) * scaleX;
+            const h = (a.height || 50) * scaleY;
+            const stampY = pdfH - (a.y * scaleY) - h;
+            page.drawImage(pngImage, {
+              x: x,
+              y: stampY,
+              width: w,
+              height: h,
+              rotate: degrees(a.rotation || 0),
+              opacity: a.opacity !== undefined ? a.opacity : 1.0
+            });
+          } catch (e) {
+            console.warn('Stamp/signature embed error:', e);
           }
         } else if (a.type === 'note') {
           if (a.text) {
@@ -1034,7 +1765,6 @@ async function saveVisualForm() {
               const code = ch.charCodeAt(0);
               return ((code >= 32 && code <= 126) || (code >= 160 && code <= 255)) ? ch : ' ';
             }).join('');
-            // Draw yellow notation badge
             const noteW = Math.max(80, safeNote.length * textSize * 0.58 + 16);
             const noteH = textSize + 8;
             page.drawRectangle({
@@ -1084,21 +1814,6 @@ async function saveVisualForm() {
             thickness: th,
             color: rgb(0.86, 0.15, 0.15)
           });
-        } else if (a.type === 'sign' && a.dataUrl) {
-          try {
-            const pngBytes = await fetch(a.dataUrl).then(res => res.arrayBuffer());
-            const pngImage = await pdfDoc.embedPng(pngBytes);
-            const w = (a.width || 120) * scaleX;
-            const h = (a.height || 38) * scaleY;
-            page.drawImage(pngImage, {
-              x: x,
-              y: y,
-              width: w,
-              height: h
-            });
-          } catch (e) {
-            console.warn('Signature embed error:', e);
-          }
         }
       }
       
@@ -1139,17 +1854,18 @@ async function saveVisualForm() {
     const outBytes = await pdfDoc.save();
     const outName = state.currentPdfName.replace('.pdf', '') + '_completed.pdf';
     downloadPdf(outBytes, outName);
-    showStatus('formStatus', `Successfully filled and exported: ${outName}`, 'success');
+    showStatus('formStatus', 'Successfully filled and exported: ' + outName, 'success');
     speakReply('Your completed form has been saved.');
   } catch (err) {
     console.error('Save form error:', err);
-    showStatus('formStatus', `Error saving form: ${err.message}`, 'error');
+    showStatus('formStatus', 'Error saving form: ' + err.message, 'error');
   }
 }
 
 if (saveVisualFormBtn) {
   saveVisualFormBtn.addEventListener('click', saveVisualForm);
 }
+
 
 // FEATURE 2: SIGNATURE UPLOAD & DRAWING
 // ==========================================
