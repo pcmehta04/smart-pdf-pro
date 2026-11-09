@@ -1,13 +1,13 @@
 {
-  "name": "Smart PDF Pro",
-  "short_name": "Smart PDF Pro",
+  "name": "PCM Smart PDF",
+  "short_name": "PCM Smart PDF",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
   "orientation": "any",
   "background_color": "#F8FAFC",
   "theme_color": "#FF671F",
-  "description": "100% Offline Local PDF Studio for Desktop, Tablets, iOS, and Android.",
+  "description": "PCM Smart PDF by Prakash Chand Mehta - 100% Offline Document Workstation for Mobile, Tablets, iOS, and Android.",
   "categories": ["productivity", "utilities", "business"],
   "icons": [
     {

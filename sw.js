@@ -1,4 +1,5 @@
-const CACHE_NAME = 'smart-pdf-pro-v11';
+// PCM Smart PDF - Offline Service Worker (Cache v15 - Master Tricolor Edition)
+const CACHE_NAME = 'pcm-smart-pdf-v15';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
@@ -12,6 +13,8 @@ const ASSETS_TO_CACHE = [
   './pdf.worker.min.js',
   './js/app.js',
   './app.js',
+  './js/pcm_kyc_processor.js',
+  './pcm_kyc_processor.js',
   './manifest.json',
   './icon-192.png',
   './icon-512.png',
@@ -21,32 +24,63 @@ const ASSETS_TO_CACHE = [
   './icons/maskable-icon-512.png',
   './icons/apple-touch-icon.png',
   './icons/logo-header.png',
-  './icons/favicon.ico'
+  './icons/favicon.ico',
+  './favicon.ico',
+  './eula.html',
+  './privacy-policy.html'
 ];
 
 self.addEventListener('install', (event) => {
+  self.skipWaiting();
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
-      return Promise.allSettled(
-        ASSETS_TO_CACHE.map((url) => cache.add(url).catch((e) => console.log('SW cache skip:', url, e)))
-      );
+      return cache.addAll(ASSETS_TO_CACHE).catch(err => {
+        console.warn('Cache addAll warning:', err);
+      });
     })
   );
-  self.skipWaiting();
 });
 
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((keys) => {
       return Promise.all(
-        keys.filter((key) => key !== CACHE_NAME).map((key) => caches.delete(key))
+        keys.map((key) => {
+          if (key !== CACHE_NAME) {
+            console.log('Purging legacy cache:', key);
+            return caches.delete(key);
+          }
+        })
       );
-    })
+    }).then(() => self.clients.claim())
   );
-  self.clients.claim();
+});
+
+self.addEventListener('message', (event) => {
+  if (event.data && event.data.type === 'SKIP_WAITING') {
+    self.skipWaiting();
+  }
 });
 
 self.addEventListener('fetch', (event) => {
+  if (event.request.method !== 'GET') return;
+  
+  // For index.html and sw.js, try network first to guarantee latest branding updates
+  const url = new URL(event.request.url);
+  if (url.pathname.endsWith('index.html') || url.pathname.endsWith('sw.js') || url.pathname.endsWith('/')) {
+    event.respondWith(
+      fetch(event.request).then((networkResponse) => {
+        if (networkResponse && networkResponse.status === 200) {
+          const resClone = networkResponse.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, resClone));
+        }
+        return networkResponse;
+      }).catch(() => caches.match(event.request))
+    );
+    return;
+  }
+
+  // Cache-first for static library binaries
   event.respondWith(
     caches.match(event.request).then((cachedResponse) => {
       if (cachedResponse) {
@@ -61,10 +95,6 @@ self.addEventListener('fetch', (event) => {
           cache.put(event.request, responseToCache);
         });
         return networkResponse;
-      }).catch(() => {
-        if (event.request.mode === 'navigate') {
-          return caches.match('./index.html');
-        }
       });
     })
   );

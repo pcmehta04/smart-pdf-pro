@@ -1,6 +1,6 @@
 {
-  "appId": "com.prakashchandmehta.smartpdfpro",
-  "appName": "Smart PDF Pro",
+  "appId": "com.prakashchandmehta.pcmsmartpdf",
+  "appName": "PCM Smart PDF",
   "webDir": "www",
   "bundledWebRuntime": false,
   "server": {
